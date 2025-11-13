@@ -1,0 +1,33 @@
+from tkinter import *
+import os
+from PIL import Image, ImageTk
+
+class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
+    def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
+        super().__init__(master) #Se heredan los atributos que tenga la clase App. 
+        self.controlador = controlador #El controlador hereda los metodos de la clase App. Se usara principalmente para la funcion mostrar pantalla. Ej. self.controlador.mostrar_pantalla("interfaz")
+
+class App(Tk): #Clase donde va la ventana principal del sistema
+    def __init__(self):
+        super().__init__()
+        self.title("Ventas")
+        self.state('zoomed')
+        self.geometry("1024x720")
+        self.pantallas = {} #Diccionario que contiene cada interfaz
+        """
+        Al crear una nueva interfaz, debe importarse y añadirse al diccionario de pantallas.
+        self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
+        Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
+        """
+        self.pantallas["Login"] = login(self, self)
+        self.mostrar_pantalla("Login")
+
+    def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+        for pantalla in self.pantallas.values():
+            pantalla.pack_forget()
+        self.pantallas[nombre].pack(expand=True, fill="both")
+
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
