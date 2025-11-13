@@ -20,9 +20,9 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
         Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
         """
-        #self.pantallas["plantilla"] = Plantilla(self,self)
+        self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = login(self, self)
-        self.mostrar_pantalla("Login")
+        self.mostrar_pantalla("plantilla")
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         for pantalla in self.pantallas.values():
