@@ -2,7 +2,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from view.plantilla.plantilla_interfaz import *
 from controller.funciones import *
-#ola laa ola
+#ola laa ola olaaaa
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
         super().__init__(master) #Se heredan los atributos que tenga la clase App. 
