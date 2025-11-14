@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import ttk
 from view.header import *
 
-
 class mainVentas(Frame):
     def __init__(self, master, controlador):
         super().__init__(master)

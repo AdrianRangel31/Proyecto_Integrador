@@ -24,7 +24,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["ventas"] = mainVentas(self,self)
         self.pantallas["Login"] = login(self, self)
-        self.mostrar_pantalla("ventas")
+        self.mostrar_pantalla("Login")
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         for pantalla in self.pantallas.values():
