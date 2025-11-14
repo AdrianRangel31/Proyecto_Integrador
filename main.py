@@ -1,6 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 from view.plantilla.plantilla_interfaz import *
+from view import login_interfaz
 from controller.funciones import *
 #prueba jeje hjjnk ouyea
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
@@ -20,9 +21,9 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
         Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
         """
-        self.pantallas["plantilla"] = Plantilla(self,self)
-        self.pantallas["Login"] = login(self, self)
-        self.mostrar_pantalla("plantilla")
+        #self.pantallas["plantilla"] = Plantilla(self,self)
+        self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
+        self.mostrar_pantalla("Login")
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         for pantalla in self.pantallas.values():
