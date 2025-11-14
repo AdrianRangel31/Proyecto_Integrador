@@ -4,7 +4,7 @@ from view.plantilla.plantilla_interfaz import *
 from controller.funciones import *
 from view.ventas.ventas import *
 #prueba jeje hjjnk ouyea yisuscambios
-
+#Hola
 #Segunda prueba ksadhsjka
 #tercera prueba
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
