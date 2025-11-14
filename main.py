@@ -3,7 +3,11 @@ from PIL import Image, ImageTk
 from view.plantilla.plantilla_interfaz import *
 from view import login_interfaz
 from controller.funciones import *
-#prueba jeje hjjnk ouyea
+from view.ventas.ventas import *
+#prueba jeje hjjnk ouyea yisuscambios
+#Hola
+#Segunda prueba ksadhsjka
+#tercera prueba
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
         super().__init__(master) #Se heredan los atributos que tenga la clase App. 
@@ -21,8 +25,14 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
         Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
         """
+<<<<<<< HEAD
         #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
+=======
+        self.pantallas["plantilla"] = Plantilla(self,self)
+        self.pantallas["ventas"] = mainVentas(self,self)
+        self.pantallas["Login"] = login(self, self)
+>>>>>>> 51900e8526e71e8408d5f44b88e9bda8534fc5cf
         self.mostrar_pantalla("Login")
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
