@@ -1,6 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 from view.plantilla.plantilla_interfaz import *
+from view import login_interfaz
 from controller.funciones import *
 from view.ventas.ventas import *
 #prueba jeje hjjnk ouyea yisuscambios
@@ -24,6 +25,8 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
         Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
         """
+        #self.pantallas["plantilla"] = Plantilla(self,self)
+        self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
         self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["ventas"] = mainVentas(self,self)
         self.pantallas["Login"] = login(self, self)
