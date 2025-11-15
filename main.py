@@ -25,14 +25,8 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
         Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
         """
-<<<<<<< HEAD
         #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
-=======
-        self.pantallas["plantilla"] = Plantilla(self,self)
-        self.pantallas["ventas"] = mainVentas(self,self)
-        self.pantallas["Login"] = login(self, self)
->>>>>>> 51900e8526e71e8408d5f44b88e9bda8534fc5cf
         self.mostrar_pantalla("Login")
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
