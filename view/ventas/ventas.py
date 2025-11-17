@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from view.header import *
+from model import ventasCRUD
 
 COLOR_FRAME = "#c60000"
 
@@ -19,97 +20,165 @@ class mainVentas(Frame):
         body.columnconfigure(1, weight=1)
         body.rowconfigure(0, weight=1)
 
-        frameCRUD = Frame(body, bg=COLOR_FRAME)
-        frameCRUD.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        frameCRUD.pack_propagate(False)
-        frameGRAPH = Frame(body, bg=COLOR_FRAME)
-        frameGRAPH.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
-        frameGRAPH.pack_propagate(False)
+        frameVENTA = Frame(body, bg=COLOR_FRAME)
+        frameVENTA.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        frameVENTA.pack_propagate(False)
+        frameDETALLES = Frame(body, bg=COLOR_FRAME)
+        frameDETALLES.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        frameDETALLES.pack_propagate(False)
 
-        #FRAME CRUD
-        frame_filtrar = Frame(frameCRUD,bg=COLOR_FRAME)
-        frame_filtrar.pack(pady=20,)
+        # FRAME FILTRAR
+        frame_filtrar = Frame(frameVENTA, bg=COLOR_FRAME)
+        frame_filtrar.pack(pady=20)
 
         for i in range(4):
             frame_filtrar.columnconfigure(i, weight=0)
         frame_filtrar.rowconfigure(0, weight=0)
         
-        lbl_filtrar = Label(frame_filtrar,text="Filtrar por:",font=("Arial", 22),bg=COLOR_FRAME,fg="white")
-        lbl_filtrar.grid(row=0,column=0,sticky="w")
- 
-        lista = ["Opciones","campo1","campo2"]
-        combo = ttk.Combobox(frame_filtrar, values=lista,state="readonly",show="ola")
-        combo.grid(row=0,column=1,sticky="nsew")
+        lbl_filtrar = Label(frame_filtrar, text="Filtrar por:", font=("Arial", 22),
+                            bg=COLOR_FRAME, fg="white")
+        lbl_filtrar.grid(row=0, column=0, sticky="w")
 
-        entrybuscar = Entry(frame_filtrar)
-        entrybuscar.grid(row=0,column=2,sticky="nsew")
+        columnas = ["ID", "Fecha", "Total"]
+
+        # ---------------------------- ESTILOS -------------------------------
+        style = ttk.Style()
+        style.theme_use("clam")
+
+        # Estilo personalizado SOLO para Treeview
+        style.configure("Custom.Treeview",
+                        font=("Arial", 16),
+                        rowheight=35)
         
-        btn_buscar = Button(frame_filtrar,text="Buscar",font=("Arial", 13, "bold"),command=lambda: "")
-        btn_buscar.grid(row=0,column=3,sticky="nsew")
+        style.configure("Custom.Treeview.Heading",
+                        background="#4A90E2",
+                        foreground="white",
+                        font=("Arial", 18, "bold"),
+                        relief="flat")
+        
+        style.map("Custom.Treeview.Heading",
+                  background=[("active", "#357ABD")])
 
-        chartframe = Frame(frameCRUD,bg="white",height=450)
+        # Estilo para ComboBox
+        style.configure("Custom.TCombobox",
+                        fieldbackground="#4A90E2",
+                        background="#4A90E2",
+                        foreground="black",
+                        bordercolor="#4A90E2",
+                        lightcolor="#4A90E2",
+                        arrowcolor="white",
+                        font=("Arial", 22))
+
+        style.map("Custom.TCombobox",
+                  fieldbackground=[("readonly", "#4A90E2")],
+                  foreground=[("readonly", "white")],
+                  selectbackground=[("readonly", "#4A90E2")],
+                  selectforeground=[("readonly", "white")])
+        # -------------------------------------------------------------------
+
+        # COMBOBOX con estilo aplicado
+        combo_campo = ttk.Combobox(frame_filtrar,
+                             values=columnas,
+                             state="readonly",
+                             style="Custom.TCombobox")
+        combo_campo.configure(font=("Arial", 22),width=10)
+        combo_campo.grid(row=0, column=1, sticky="nsew")
+        def campo_seleccionado(event):
+            valor = combo_campo.get()
+            match valor:
+                case "ID":
+                    combo_valor.config(values=[])
+                case "Fecha":
+                    combo_valor.config(values=filtros_fecha)
+                case "Total":
+                    combo_valor.config(values=filtros_precio)
+        combo_campo.bind("<<ComboboxSelected>>", campo_seleccionado)
+
+
+        filtros_fecha = ["Más recientes","Más antiguos"]
+        filtros_precio = ["Más alto","Más bajo"]
+        combo_valor = ttk.Combobox(frame_filtrar,
+                             values=[],
+                             style="Custom.TCombobox")
+        combo_valor.configure(font=("Arial", 22),width=10)
+        combo_valor.grid(row=0, column=2, sticky="nsew")
+        
+        btn_buscar = Button(frame_filtrar, text="Buscar",
+                            font=("Arial", 13, "bold"),
+                            command=lambda: self.buscar_venta(combo_campo.get(),combo_valor.get()))
+        btn_buscar.grid(row=0, column=3, sticky="nsew")
+
+        # --------------------------- TABLA --------------------------------
+        chartframe = Frame(frameVENTA, bg="white", height=450)
         chartframe.pack_propagate(False)
         chartframe.pack(fill="x")
-        
-        columnas = ["ID","Fecha","Productos","Total"]
-        # contenedor para la tabla y sus scrollbars
+
         table_container = Frame(chartframe, bg="white")
         table_container.pack(fill="both", expand=True)
 
-        tabla = ttk.Treeview(table_container, columns=columnas, show="headings", selectmode="browse")
+        registros = ventasCRUD.ventas.buscar("*")
+
+        tabla = ttk.Treeview(
+            table_container,
+            columns=columnas,
+            show="headings",
+            selectmode="browse",
+            style="Custom.Treeview"
+        )
+
         vsb = ttk.Scrollbar(table_container, orient="vertical", command=tabla.yview)
-        hsb = ttk.Scrollbar(table_container, orient="horizontal", command=tabla.xview)
-        tabla.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-
-        # Layout usando grid para que los scrollbars funcionen correctamente
-        tabla.grid(row=0, column=0, sticky="nsew")
-        vsb.grid(row=0, column=1, sticky="ns")
-        hsb.grid(row=1, column=0, sticky="ew")
-
-        table_container.rowconfigure(0, weight=1)
-        table_container.columnconfigure(0, weight=1)
+        tabla.configure(yscrollcommand=vsb.set)
 
         for col in columnas:
             tabla.heading(col, text=col)
-            tabla.column(col, anchor="center", width=120)
+            tabla.column(col, anchor="center", width=100)
 
-        registros = [(1,"2-2-2020","Hamburguesa",123)]
-        for i in range(30):
-            registros.append((i,"2-2-2020","Hamburguesa",123))
         for fila in registros:
             tabla.insert("", "end", values=fila)
 
-        frame_botones = Frame(frameCRUD,bg=COLOR_FRAME)
+        tabla.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+
+        table_container.rowconfigure(0, weight=1)
+        table_container.columnconfigure(0, weight=1)
+        # -------------------------------------------------------------------
+
+        frame_botones = Frame(frameVENTA, bg=COLOR_FRAME)
         frame_botones.pack_propagate(False)
-        frame_botones.pack(padx=20,pady=10)
+        frame_botones.pack(padx=20, pady=10)
 
-        btn_añadir = Button(frame_botones,text="Añadir",font=("Arial", 13, "bold"),width=15,fg="white",bg="#86B7D6",command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
-        btn_añadir.grid(row=0,column=0,sticky="nsew",padx=10,pady=10)
+        btn_añadir = Button(frame_botones, text="Añadir",
+                            font=("Arial", 13, "bold"), width=15,
+                            fg="white", bg="#86B7D6",
+                            command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
+        btn_añadir.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        btn_actualizar = Button(frame_botones,text="Actualizar",font=("Arial", 13, "bold"),width=15,fg="white",bg="#86B7D6",command=lambda: self.controlador.mostrar_pantalla("actualizarventas"))
-        btn_actualizar.grid(row=0,column=1,sticky="nsew",padx=10,pady=10)
+        btn_actualizar = Button(frame_botones, text="Actualizar",
+                                font=("Arial", 13, "bold"), width=15,
+                                fg="white", bg="#86B7D6",
+                                command=lambda: self.controlador.mostrar_pantalla("actualizarventas"))
+        btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
-        btn_eliminar = Button(frame_botones,text="Eliminar",font=("Arial", 13, "bold"),width=15,fg="white",bg="#86B7D6",command=lambda: self.eliminar_cliente())
-        btn_eliminar.grid(row=0,column=2,sticky="nsew",padx=10,pady=10)
+        btn_eliminar = Button(frame_botones, text="Eliminar",
+                              font=("Arial", 13, "bold"), width=15,
+                              fg="white", bg="#86B7D6",
+                              command=lambda: self.eliminar_venta())
+        btn_eliminar.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
 
-        #FRAME GRAPH
 
-        self.graph1 = obtener_imagen("graph.png",600,270)
-        lbl_msj1 = Label(frameGRAPH,text="Ultima semana",font=("Arial", 22),bg=COLOR_FRAME,fg="white")
-        lbl_msj1.pack()
-        lbl_graph1 = Label(frameGRAPH,image=self.graph1,compound="top", height=270)
-        lbl_graph1.pack()
 
-        self.graph2 = obtener_imagen("graph.png",600,270)
-        lbl_msj2 = Label(frameGRAPH,text="Ultimo mes",font=("Arial", 22),bg=COLOR_FRAME,fg="white")
-        lbl_msj2.pack()
-        lbl_graph2 = Label(frameGRAPH,image=self.graph2,compound="top", height=270)
-        lbl_graph2.pack()
-    
-    def eliminar_cliente(self):
-        eliminar = messagebox.askyesno("ADVERTENCIA",f"El ID seleccionado es: ##\n¿Está seguro de que desea eliminar este registro?")
+            
+
+    def buscar_venta(self,campo,valor):
+        registros = ventasCRUD.ventas.buscar(campo,valor)
+        print(registros)
+
+    def eliminar_venta(self):
+        eliminar = messagebox.askyesno("ADVERTENCIA", 
+                                       f"El ID seleccionado es: ##\n¿Está seguro de que desea eliminar este registro?")
         if eliminar:
-            messagebox.showinfo("Exito",f"El registro con ID = ## se eliminó exitosamente")
+            messagebox.showinfo("Exito", 
+                                f"El registro con ID = ## se eliminó exitosamente")
 
 class insertarVentas(Frame):
     def __init__(self, master, controlador,accion):
