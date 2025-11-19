@@ -4,10 +4,7 @@ from view.plantilla.plantilla_interfaz import *
 from view import login_interfaz
 from controller.funciones import *
 from view.ventas.ventas import *
-#prueba jeje hjjnk ouyea yisuscambios
-#Hola
-#Segunda prueba ksadhsjka
-#tercera prueba
+
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
         super().__init__(master) #Se heredan los atributos que tenga la clase App. 
@@ -29,9 +26,16 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["Login"] = usuarios.usuario.iniciar_sesion(self, self)
         #self.pantallas["Menu_principal"] = ""
         self.pantallas["plantilla"] = Plantilla(self,self)
+<<<<<<< HEAD
         self.pantallas["ventas"] = mainVentas(self,self)
         #self.pantallas["Login"] = login(self, self)
         self.mostrar_pantalla("Login")
+=======
+        self.pantallas["mainventas"] = mainVentas(self,self)
+        self.pantallas["insertarventas"] = insertarVentas(self,self,"agregar")
+        self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar")#Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
+        self.mostrar_pantalla("mainventas")
+>>>>>>> 8568191e4613dde9b82af997a9140dbc07f6d5a2
 
     def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         for pantalla in self.pantallas.values():
