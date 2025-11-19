@@ -5,6 +5,7 @@ from view import login_interfaz
 from controller.funciones import *
 from view.ventas.ventas import *
 from tkinter import messagebox
+from view.Productos.productos import *
 
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
@@ -27,6 +28,15 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
         self.pantallas["plantilla"] = Plantilla(self,self)#Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
         self.mostrar_pantalla("mainventas")
+        
+        #---------------------------------------------------------------
+        #                       PANTALLAS PRODUCTOS
+        #---------------------------------------------------------------
+        self.pantallas["productos_main"] = ProductosMain(self, self)
+        self.pantallas["productos_insertar"] = ProductosInsertar(self, self)
+        self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
+        self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
+        self.mostrar_pantalla("productos_main")
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         match nombre:
