@@ -4,6 +4,7 @@ from view.plantilla.plantilla_interfaz import *
 from view import login_interfaz
 from controller.funciones import *
 from view.ventas.ventas import *
+from tkinter import messagebox
 
 class login(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
@@ -24,13 +25,21 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         """
         #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = login_interfaz.iniciar_sesion(self, self)
-        self.pantallas["plantilla"] = Plantilla(self,self)
-        self.pantallas["mainventas"] = mainVentas(self,self)
-        self.pantallas["insertarventas"] = insertarVentas(self,self,"agregar")
-        self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar")#Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
+        self.pantallas["plantilla"] = Plantilla(self,self)#Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
         self.mostrar_pantalla("mainventas")
 
-    def mostrar_pantalla(self, nombre): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+    def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+        match nombre:
+            case "mainventas":
+                self.pantallas["mainventas"] = mainVentas(self,self)
+            case "insertarventas":
+                self.pantallas["insertarventas"] = insertarVentas(self,self,"agregar")
+            case "actualizarventas":
+                if parametro == 0:
+                    messagebox.showwarning("Advertencia","Seleccione un registro para continuar")
+                    return
+                self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar",parametro)
+
         for pantalla in self.pantallas.values():
             pantalla.pack_forget()
         self.pantallas[nombre].pack(expand=True, fill="both")
