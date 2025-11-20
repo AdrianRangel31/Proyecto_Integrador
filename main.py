@@ -6,6 +6,7 @@ from controller.funciones import *
 from view.ventas.ventas import *
 from tkinter import messagebox
 from view.Productos.productos import *
+from view.Proveedores.proveedores_interfaz import *
 
 class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
@@ -179,6 +180,16 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
         self.mostrar_pantalla("productos_main")
+
+
+        #---------------------------------------------------------------
+        #                       PANTALLAS PROVEEDORES
+        #---------------------------------------------------------------
+        self.pantallas["proveedores_main"] = ProveedoresMain(self, self)
+        self.pantallas["proveedores_insertar"] = ProveedoresInsertar(self, self)
+        self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
+        self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
+        self.mostrar_pantalla("proveedores_main")
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         match nombre:
