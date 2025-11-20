@@ -13,8 +13,37 @@ class mainVentas(Frame):
         head = header(self, controlador)
         head.pack(fill="x")
         head.titulo = "Ventas"
-        body = Frame(self, bg="#ffffff")
-        body.pack(fill="both", expand=True)
+
+        # --- SCROLLABLE BODY (vertical only) para mainVentas ---
+        container = Frame(self)
+        container.pack(fill="both", expand=True)
+
+        canvas = Canvas(container, bg="#ffffff", highlightthickness=0)
+        vsb = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=vsb.set)
+
+        vsb.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        body = Frame(canvas, bg="#ffffff")  # 'body' con el mismo nombre que usa el resto del código
+        window_id = canvas.create_window((0, 0), window=body, anchor="nw")
+
+        # cuando el contenido del body cambie, actualiza el scrollregion
+        def _on_body_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        body.bind("<Configure>", _on_body_configure)
+
+        # cuando cambie el tamaño del canvas, ajusta el width del window y asegúrate
+        # de que la altura del window sea al menos la requerida por el contenido
+        def _on_canvas_configure(event):
+            req_h = body.winfo_reqheight()
+            # width = ancho del canvas; height = mayor entre altura visible y altura requerida
+            canvas.itemconfig(window_id, width=event.width, height=max(event.height, req_h))
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        canvas.bind("<Configure>", _on_canvas_configure)
+        # --- fin scrollable para mainVentas ---
+
+
         self.id_seleccionado = 0
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
@@ -112,36 +141,14 @@ class mainVentas(Frame):
         btn_buscar.grid(row=0, column=3, sticky="nsew")
 
         # --------------------------- TABLA VENTAS --------------------------------
-        chartframe = Frame(frameVENTA, bg="white", height=450)
-        chartframe.pack_propagate(False)
-        chartframe.pack(fill="x")
-
-        table_container = Frame(chartframe, bg="white")
-        table_container.pack(fill="both", expand=True)
-
-
-        columnas.remove("Todo")
-        self.tabla = ttk.Treeview(
-            table_container,
-            columns=columnas,
-            show="headings",
-            selectmode="browse",
-            style="Custom.Treeview"
+        columnas_ventas = ["ID", "Fecha", "Total"]
+        frame_tablaventas = Frame(frameVENTA,height=200)
+        frame_tablaventas.pack(fill="x")
+        self.tabla = tabla(
+            frame_tablaventas,
+            columnas_ventas,
+            callback_seleccion=self.actualizar_id  # ← recibe el ID seleccionado
         )
-
-        vsb = ttk.Scrollbar(table_container, orient="vertical", command=self.tabla.yview)
-        self.tabla.configure(yscrollcommand=vsb.set)
-
-        for col in columnas:
-            self.tabla.heading(col, text=col)
-            self.tabla.column(col, anchor="center", width=100)
-
-        self.tabla.grid(row=0, column=0, sticky="nsew")
-        vsb.grid(row=0, column=1, sticky="ns")
-
-        table_container.rowconfigure(0, weight=1)
-        table_container.columnconfigure(0, weight=1)
-
         def seleccionar_fila(event):
             fila = self.tabla.selection()  # Obtiene ID(s) de las filas seleccionadas
             if fila:
@@ -164,7 +171,7 @@ class mainVentas(Frame):
         btn_actualizar = Button(frame_botones, text="Actualizar",
                                 font=("Arial", 16, "bold"), width=15,
                                 fg="white", bg="#86B7D6",
-                                command=lambda: self.controlador.mostrar_pantalla("actualizarventas"))
+                                command=lambda: self.controlador.mostrar_pantalla("actualizarventas",self.id_seleccionado))
         btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
         btn_eliminar = Button(frame_botones, text="Eliminar",
@@ -175,45 +182,20 @@ class mainVentas(Frame):
 
         self.buscar_venta("Todo","")
 
-
-
-
-
-
         #FRAME DETALLES
         lbl_titulo = Label(frameDETALLES,text="Detalles de venta",font=("Arial", 22),
                             bg=COLOR_FRAME, fg="white")
         lbl_titulo.pack(pady=20)
 
         # --------------------------- TABLA  DETALLES--------------------------------
-        chartframe2 = Frame(frameDETALLES, bg="white", height=450)
-        chartframe2.pack_propagate(False)
-        chartframe2.pack(fill="x")
+        columnas_detalles = ["ID", "ID_venta", "Producto","Cantidad","Subtotal"]
+        frame_tabladetalles = Frame(frameDETALLES,height=200)
+        frame_tabladetalles.pack(fill="x")
 
-        table_container2 = Frame(chartframe2, bg="white")
-        table_container2.pack(fill="both", expand=True)
-
-        columnas2 = ["ID","ID_Venta","Producto","Cantidad","Subtotal"]
-        self.tabla2 = ttk.Treeview(
-            table_container2,
-            columns=columnas2,
-            show="headings",
-            selectmode="browse",
-            style="Custom.Treeview"
+        self.tabla2 = tabla(
+            frame_tabladetalles,
+            columnas_detalles
         )
-
-        vsb = ttk.Scrollbar(table_container2, orient="vertical", command=self.tabla2.yview)
-        self.tabla2.configure(yscrollcommand=vsb.set)
-
-        for col in columnas2:
-            self.tabla2.heading(col, text=col)
-            self.tabla2.column(col, anchor="center", width=60)
-
-        self.tabla2.grid(row=0, column=0, sticky="nsew")
-        vsb.grid(row=0, column=1, sticky="ns")
-
-        table_container2.rowconfigure(0, weight=1)
-        table_container2.columnconfigure(0, weight=1)
 
         """
         def seleccionar_fila(event):
@@ -225,8 +207,6 @@ class mainVentas(Frame):
         self.tabla2.bind("<<TreeviewSelect>>", seleccionar_fila) 
         """
         # -------------------------------------------------------------------
-
-            
 
     def buscar_venta(self,campo,valor):
         registros = ventasCRUD.ventas.buscar(campo,valor)
@@ -257,17 +237,46 @@ class mainVentas(Frame):
             self.tabla2.delete(row)
         for fila in registros:
             self.tabla2.insert("", "end", values=fila)
-        
+
+    def actualizar_id(self, id_recibido):
+        self.id_seleccionado = id_recibido
+        print("ID seleccionado:", id_recibido)
+    def buscar_venta(self, campo, valor):
+        registros = ventasCRUD.ventas.buscar(campo, valor)
+        self.tabla.cargar(registros)
 
 class insertarVentas(Frame):
-    def __init__(self, master, controlador,accion):
+    def __init__(self, master, controlador,accion,id_seleccionado=None):
         super().__init__(master)
         self.controlador = controlador
         head = header(self, controlador)
         head.pack(fill="x")
-        body = Frame(self, bg=COLOR_FRAME)
-        body.pack(fill="both", expand=True,padx=30,pady=30)
-        
+
+        # --- SCROLLABLE BODY (vertical only) para insertarVentas ---
+        container = Frame(self)
+        container.pack(fill="both", expand=True, padx=30, pady=30)
+
+        canvas = Canvas(container, bg=COLOR_FRAME, highlightthickness=0)
+        vsb = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=vsb.set)
+
+        vsb.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        body = Frame(canvas, bg=COLOR_FRAME)  # el 'body' original (nombre conservado)
+        window_id = canvas.create_window((0, 0), window=body, anchor="nw")
+
+        def _on_body_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        body.bind("<Configure>", _on_body_configure)
+
+        def _on_canvas_configure(event):
+            req_h = body.winfo_reqheight()
+            canvas.itemconfig(window_id, width=event.width, height=max(event.height, req_h))
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        canvas.bind("<Configure>", _on_canvas_configure)
+        # --- fin scrollable para insertarVentas ---
+
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
         body.rowconfigure(0, weight=1)
@@ -276,41 +285,6 @@ class insertarVentas(Frame):
 
         frame_prod = Frame(body,bg=COLOR_FRAME)
         frame_total = Frame(body,bg=COLOR_FRAME)
-        match accion:
-            case "agregar":
-                head.titulo = "Registrar venta"
-                frame_prod.grid(row=0,column=0,sticky="nsew",padx=40,pady=50)
-                frame_total.grid(row=0,column=1,sticky="nsew",pady=50,padx=20)
-                frame_prod.grid_propagate(False)
-            case "actualizar":
-                head.titulo = "Actualizar venta"
-                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=50)
-                frame_total.grid(row=1,column=1,sticky="nsew",pady=50,padx=20)
-                body.rowconfigure(1, weight=1)
-
-                chartframe = Frame(body,bg="white")
-                chartframe.pack_propagate(False)
-                chartframe.grid(row=0,column=0,sticky="nsew",pady=(50,0),padx=10,columnspan=2)
-                columnas = ["ID","Fecha","Productos","Total"]
-                table_container = Frame(chartframe, bg="white")
-                table_container.pack(fill="both", expand=True)
-                tabla = ttk.Treeview(table_container, columns=columnas, show="headings", selectmode="browse")
-                tabla.grid(row=0, column=0, sticky="nsew")
-
-                table_container.rowconfigure(0, weight=1)
-                table_container.columnconfigure(0, weight=1)
-
-                for col in columnas:
-                    tabla.heading(col, text=col)
-                    tabla.column(col, anchor="center", width=120)
-
-                registros = [(1,"2-2-2020","Hamburguesa",123)]
-                for fila in registros:
-                    tabla.insert("", "end", values=fila)
-
-
-
-
 
         #frame prod
         #Comida
@@ -350,7 +324,6 @@ class insertarVentas(Frame):
                 validate="key",
                 validatecommand=lambda:vcmd
             )
-
             self.spinbox_prod.append(spin)
             spin.grid(row=i+1, column=1, sticky="nsew")
 
@@ -378,6 +351,50 @@ class insertarVentas(Frame):
         self.total_venta = 0
         btn_volver = Button(frame_total,text="Volver",width=20,font=("Arial",20),command=lambda:self.controlador.mostrar_pantalla("mainventas"),bg="#669BBC",fg="white")
         btn_volver.pack(pady=5)
+        match accion:
+            case "agregar":
+                head.titulo = "Registrar venta"
+                frame_prod.grid(row=0,column=0,sticky="nsew",padx=40,pady=50)
+                frame_total.grid(row=0,column=1,sticky="nsew",pady=50,padx=20)
+                frame_prod.grid_propagate(False)
+            case "actualizar":
+                head.titulo = f"Actualizar venta {id_seleccionado}"
+                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=50)
+                frame_total.grid(row=1,column=1,sticky="nsew",pady=50,padx=20)
+                body.rowconfigure(1, weight=1)
+                frame_tablas = Frame(body,bg="white",height=300)
+                frame_tablas.pack_propagate(False)
+                frame_tablas.grid(row=0,column=0,sticky="nsew",pady=(20,0),padx=10,columnspan=2)
+                columnas_ventas = ["ID", "Fecha", "Total"]
+                frame_tablaventas = Frame(frame_tablas,height=80)
+                frame_tablaventas.pack_propagate(False)
+                frame_tablaventas.pack(fill="x")
+                self.tabla = tabla(
+                    frame_tablaventas,
+                    columnas_ventas
+                )
+                self.registros_venta = ventasCRUD.ventas.buscar("ID",id_seleccionado)
+                self.tabla.cargar(self.registros_venta)
+
+                columnas_detalle = ["ID", "ID_venta", "Producto","Cantidad","Subtotal"]
+                frame_tabladetalles = Frame(frame_tablas,height=200)
+                frame_tabladetalles.pack(fill="x")
+                frame_tabladetalles.pack_propagate(False)
+                self.tabla2 = tabla(
+                    frame_tabladetalles,
+                    columnas_detalle
+                )
+                self.registros_detalles = ventasCRUD.detalleVenta.buscar(id_seleccionado)
+                self.tabla2.cargar(self.registros_detalles)
+
+                btn_agregar.config(text="Actualizar venta",command=lambda:"")
+
+                self.cantidades = ventasCRUD.detalleVenta.obtener_cantidad(id_seleccionado)
+                i=0
+                for cantidad in self.cantidades:
+                    self.spinbox_prod[i].config(values = cantidad)
+                    i+=1
+                
 
     def spin_cambio(self, index, valor):
         cant_prod = []
@@ -396,6 +413,9 @@ class insertarVentas(Frame):
         return False
 
     def crearVenta(self):
+        if self.total_venta == 0:
+            messagebox.showwarning("Advertencia","Ingrese productos para continuar")
+            return
         insertar,id = ventasCRUD.ventas.insertar(self.total_venta)
         for i in range(len(self.spinbox_prod)):
             cantidad = int(self.spinbox_prod[i].get())
@@ -404,6 +424,42 @@ class insertarVentas(Frame):
         if insertar and insertar_detalle:
             messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
 
+    def actualizarVenta(self):
+        pass
 
+class tabla(ttk.Treeview):
+    def __init__(self, parent, columnas, callback_seleccion=None):
+        self.columnas = columnas
+        self.callback = callback_seleccion  
+        chartframe = Frame(parent, bg="white")
+        chartframe.pack(fill="x")
+        table_container = Frame(chartframe, bg="white")
+        table_container.pack(fill="x")
+        super().__init__(
+            table_container,
+            columns=self.columnas,
+            show="headings",
+            selectmode="browse",
+            style="Custom.Treeview"
+        )
+        vsb = ttk.Scrollbar(
+            table_container, orient="vertical", command=self.yview
+        )
+        self.configure(yscrollcommand=vsb.set)
+        for col in self.columnas:
+            self.heading(col, text=col)
+            self.column(col, anchor="center", width=120)
 
+        self.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        table_container.rowconfigure(0, weight=1)
+        table_container.columnconfigure(0, weight=1)
 
+    def limpiar(self):
+        for row in self.get_children():
+            self.delete(row)
+
+    def cargar(self, registros):
+        self.limpiar()
+        for fila in registros:
+            self.insert("", "end", values=fila)

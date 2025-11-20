@@ -8,19 +8,19 @@ class ventas:
         if cursor == None:
                 messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
         if campo=="Todo":
-            cursor.execute("select id_venta,fecha_venta,total from ventas")
+            cursor.execute("select * from ventas")
         else:
             match valor:
                 case "Más recientes":
-                    cursor.execute(f"select id_venta,fecha_venta,total from ventas order by fecha_venta desc")
+                    cursor.execute(f"select * from ventas order by fecha_venta desc")
                 case "Más antiguos":
-                    cursor.execute(f"select id_venta,fecha_venta,total from ventas order by fecha_venta asc")
+                    cursor.execute(f"select * from ventas order by fecha_venta asc")
                 case "Más bajo":
-                    cursor.execute(f"select id_venta,fecha_venta,total from ventas order by total asc")  
+                    cursor.execute(f"select * from ventas order by total asc")  
                 case "Más alto":
-                    cursor.execute(f"select id_venta,fecha_venta,total from ventas order by total desc")       
+                    cursor.execute(f"select * from ventas order by total desc")       
                 case _:
-                    cursor.execute(f"select id_venta,fecha_venta,total from ventas where {cambio[campo]} = '{valor}'")
+                    cursor.execute(f"select * from ventas where {cambio[campo]} = '{valor}'")
         return cursor.fetchall()
 
     @staticmethod
@@ -29,7 +29,7 @@ class ventas:
         if cursor == None:
                 messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
                 return False,0
-        cursor.execute(f"insert into ventas values(NULL,1,NOW(),{total})")
+        cursor.execute(f"insert into ventas values(NULL,NOW(),{total})")
         conexion.commit()
         return True, cursor.lastrowid
 
@@ -51,11 +51,21 @@ class detalleVenta:
         cursor.execute("""
             SELECT dv.id_detalle,dv.id_venta, m.nombre, dv.cantidad, dv.subtotal
             FROM detalle_venta dv
-            JOIN menu m ON dv.id_producto = m.id_menu
+            JOIN menu m ON dv.id_menu = m.id_menu
             WHERE dv.id_venta = %s
         """, (id,))
         return cursor.fetchall()
     
+    @staticmethod
+    def obtener_cantidad(id):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+        cursor.execute(f"select cantidad from detalle_venta where id_venta = {id}")
+        return cursor.fetchall()
+     
+
+    @staticmethod
     def insertar(id_venta,producto,cantidad):
         cursor, conexion = conectarBD()
         if cursor == None:
