@@ -2,7 +2,7 @@ from tkinter import *
 from view.header import *
 #Plantilla para realizar interfaces. Seguir la siguiente estructura para las clases principales
 
-class iniciar_sesion(Frame):
+class Login(Frame):
     def __init__(self, master, controlador):
         super().__init__(master)
         self.controlador = controlador
@@ -86,5 +86,5 @@ class iniciar_sesion(Frame):
         entry_pass.pack(pady=p_entry_y, padx=p_entry_x, fill="x")
 
         boton_iniciar = Button(frame_derecha, text="Iniciar sesión", 
-                               font=font_boton, bg="#333", fg="white") 
+                               font=font_boton, bg="#333", fg="white", command=lambda:self.controlador.mostrar_pantalla("Dashboard")) 
         boton_iniciar.pack(pady=p_boton_y, fill="x", padx=p_entry_x)

@@ -14,3 +14,4 @@ def obtener_imagen(nombre, ancho, alto):
     else:
         print(f"[⚠️] Imagen no encontrada: {ruta_imagen}")
         return None
+
