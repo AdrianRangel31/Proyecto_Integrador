@@ -4,47 +4,46 @@ from PIL import Image, ImageTk
 import os
 import sys
 
-# --- IMPORTS DE RUTAS (Para que encuentre model y controller) ---
-# Esto asegura que Python encuentre las carpetas hermanas 'model' y 'controller'
+# --- IMPORTS DE RUTAS ---
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(ruta_raiz)
 
 from model.productosCRUD import Productos
 from controller.funciones import obtener_imagen
 
-# --- CONSTANTES DE ESTILO ---
+# --- CONSTANTES DE ESTILO (FUENTES MAS GRANDES) ---
 COLOR_HEADER = "#FF3333"
 COLOR_FONDO = "#B71C1C"
 COLOR_BOTON = "#5DADE2"
 COLOR_TEXTO_LBL = "#5DADE2"
 COLOR_BLANCO = "#FFFFFF"
-FONT_TITLE = ("Arial", 20, "bold")
+
+# Tipografía aumentada para mejor lectura
+FONT_TITLE = ("Arial", 24, "bold")       
+FONT_LABEL = ("Arial", 12, "bold")       
+FONT_INPUT = ("Arial", 12)               
+FONT_BTN = ("Arial", 12, "bold")        
+FONT_TABLE = ("Arial", 12)               
 
 class EstiloBase(Frame):
-    """Clase padre para compartir el diseño del encabezado y fondo"""
     def __init__(self, master, controlador, titulo):
         super().__init__(master)
         self.controlador = controlador
         self.configure(bg=COLOR_FONDO)
         
         # --- ENCABEZADO ---
-        header = Frame(self, bg=COLOR_HEADER, height=100)
+        header = Frame(self, bg=COLOR_HEADER, height=110)
         header.pack(fill="x", side="top")
         header.pack_propagate(False)
 
-        # 1. LOGO (Izquierda)
-        self.img_logo_small = obtener_imagen("logo.png", 80, 80)
+        self.img_logo_small = obtener_imagen("logo.png", 90, 90)
         if self.img_logo_small:
-            lbl_logo = Label(header, image=self.img_logo_small, bg=COLOR_HEADER)
-            lbl_logo.pack(side="left", padx=10, pady=5)
+            Label(header, image=self.img_logo_small, bg=COLOR_HEADER).pack(side="left", padx=15, pady=5)
         
-        # 2. BOTÓN HOME (Icono de casita)
-        btn_home = Button(header, text="🏠", font=("Arial", 20), bg=COLOR_HEADER, fg="white", 
-                        bd=0, activebackground=COLOR_HEADER, cursor="hand2",
-                        command=lambda: controlador.mostrar_pantalla("plantilla")) 
-        btn_home.pack(side="left", padx=10)
+        Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
+            bd=0, activebackground=COLOR_HEADER, cursor="hand2",
+            command=lambda: controlador.mostrar_pantalla("plantilla")).pack(side="left", padx=10)
 
-        # 3. TÍTULO
         Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
 
 
@@ -55,23 +54,21 @@ class ProductosMain(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "GESTION DE PRODUCTOS")
         
-        # --- CONTENEDOR DE LA TABLA ---
         frame_tabla = Frame(self, bg="white")
-        frame_tabla.pack(expand=True, fill="both", padx=40, pady=40)
+        frame_tabla.pack(expand=True, fill="both", padx=30, pady=30)
 
-        # Scrollbar
         scroll = Scrollbar(frame_tabla)
         scroll.pack(side="right", fill="y")
 
-        # Treeview
         cols = ("ID", "Nombre", "Desc.", "Cant.", "Unidad", "Precio", "Caducidad", "Prov.")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
+        # --- ESTILOS DE TABLA GRANDES ---
         style = ttk.Style()
-        style.configure("Treeview", font=("Arial", 10), rowheight=25)
-        style.configure("Treeview.Heading", font=("Arial", 11, "bold"))
+        style.configure("Treeview", font=FONT_TABLE, rowheight=35) # Filas más altas
+        style.configure("Treeview.Heading", font=("Arial", 13, "bold"))
 
-        anchos = [40, 150, 150, 60, 60, 80, 90, 60]
+        anchos = [50, 200, 200, 80, 80, 100, 120, 80]
         for col, ancho in zip(cols, anchos):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=ancho, anchor="center")
@@ -79,11 +76,10 @@ class ProductosMain(EstiloBase):
         self.tree.pack(expand=True, fill="both")
         scroll.config(command=self.tree.yview)
 
-        # --- BOTONES INFERIORES ---
         frame_botones = Frame(self, bg=COLOR_FONDO)
         frame_botones.pack(fill="x", pady=20, padx=40)
 
-        btn_opts = {"bg": COLOR_BOTON, "fg": "white", "font": ("Arial", 11, "bold"), "width": 15, "bd": 0, "cursor": "hand2"}
+        btn_opts = {"bg": COLOR_BOTON, "fg": "white", "font": FONT_BTN, "width": 15, "bd": 0, "cursor": "hand2"}
 
         Button(frame_botones, text="Añadir", command=lambda: controlador.mostrar_pantalla("productos_insertar"), **btn_opts).pack(side="left", padx=10)
         Button(frame_botones, text="Actualizar", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=10)
@@ -121,7 +117,7 @@ class ProductosMain(EstiloBase):
 
 
 # ==========================================================
-# PANTALLA 2: INSERTAR
+# PANTALLA 2: INSERTAR (CON TABLA DE PROVEEDORES)
 # ==========================================================
 class ProductosInsertar(EstiloBase):
     def __init__(self, master, controlador, modo="insertar"):
@@ -131,11 +127,11 @@ class ProductosInsertar(EstiloBase):
         self.id_producto_actual = None 
 
         cuerpo = Frame(self, bg=COLOR_FONDO)
-        cuerpo.pack(expand=True, fill="both", padx=40, pady=20)
+        cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
 
-        # --- FORMULARIO (Izquierda) ---
+        # --- IZQUIERDA: FORMULARIO ---
         form_frame = Frame(cuerpo, bg=COLOR_FONDO)
-        form_frame.place(relx=0.05, rely=0.05, relwidth=0.55, relheight=0.9)
+        form_frame.place(relx=0.0, rely=0.0, relwidth=0.55, relheight=1.0)
 
         self.vars = {
             "nombre": StringVar(), "cantidad": DoubleVar(), "unidad": StringVar(),
@@ -146,40 +142,72 @@ class ProductosInsertar(EstiloBase):
             ("Nombre del Producto", "nombre"), ("Cantidad", "cantidad"),
             ("Unidad", "unidad"), ("Precio", "precio"),
             ("Descripcion", "desc"), ("Fecha Caducidad (YYYY-MM-DD)", "caducidad"),
-            ("ID Proveedor (Opcional)", "prov")
+            ("ID Proveedor (Selecciona de la tabla ➜)", "prov") # Indicación visual
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                font=("Arial", 9, "bold"), width=25, anchor="w", padx=5).grid(row=idx*2, column=0, sticky="w", pady=(5, 0))
+                font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
             
             if var_key == "unidad":
-                ent = ttk.Combobox(form_frame, textvariable=self.vars[var_key], values=["kg", "litros", "piezas", "caja"], width=40)
+                ent = ttk.Combobox(form_frame, textvariable=self.vars[var_key], values=["kg", "litros", "piezas", "caja"], width=38, font=FONT_INPUT)
             else:
-                ent = Entry(form_frame, textvariable=self.vars[var_key], width=45)
-            ent.grid(row=idx*2+1, column=0, sticky="w", pady=(2, 5), ipady=3)
+                ent = Entry(form_frame, textvariable=self.vars[var_key], width=40, font=FONT_INPUT)
+            ent.grid(row=idx*2+1, column=0, sticky="w", pady=(2, 5), ipady=4, padx=5)
 
-        # --- IMAGEN GRANDE (Derecha) ---
-        img_frame = Frame(cuerpo, bg=COLOR_FONDO) # Fondo igual al resto
-        img_frame.place(relx=0.65, rely=0.15, relwidth=0.3, relheight=0.5)
+
+        # --- DERECHA: TABLA DE PROVEEDORES (AYUDA) ---
+        ayuda_frame = Frame(cuerpo, bg="white", bd=2, relief="ridge")
+        ayuda_frame.place(relx=0.58, rely=0.02, relwidth=0.40, relheight=0.75)
+
+        Label(ayuda_frame, text="LISTA DE PROVEEDORES", bg="#E0E0E0", font=("Arial", 12, "bold")).pack(fill="x")
+        Label(ayuda_frame, text="(Haz doble clic para seleccionar)", bg="white", font=("Arial", 9), fg="gray").pack(fill="x")
+
+        # Treeview de Proveedores
+        cols_prov = ("ID", "Empresa")
+        self.tree_prov = ttk.Treeview(ayuda_frame, columns=cols_prov, show="headings", height=10)
+        self.tree_prov.heading("ID", text="ID")
+        self.tree_prov.column("ID", width=50, anchor="center")
+        self.tree_prov.heading("Empresa", text="Nombre Empresa")
+        self.tree_prov.column("Empresa", width=200, anchor="w")
         
-        # Cargamos el logo en grande para decorar
-        self.img_logo_big = obtener_imagen("logo.png", 250, 250)
-        if self.img_logo_big:
-            Label(img_frame, image=self.img_logo_big, bg=COLOR_FONDO).pack()
-        else:
-            # Fallback si no carga la imagen
-            Label(img_frame, text="LOGO\nCHIVATA'S", bg="white", fg="red", font=("Arial", 20)).pack(expand=True, fill="both")
+        # Scrollbar para proveedores
+        scroll_prov = Scrollbar(ayuda_frame, command=self.tree_prov.yview)
+        self.tree_prov.configure(yscrollcommand=scroll_prov.set)
+        scroll_prov.pack(side="right", fill="y")
+        self.tree_prov.pack(expand=True, fill="both")
+
+        # Evento: Al seleccionar un proveedor, llenar el campo ID
+        self.tree_prov.bind("<<TreeviewSelect>>", self.seleccionar_proveedor)
+        
+        # Cargar proveedores
+        self.cargar_lista_proveedores()
 
         # --- BOTONES ---
         btn_frame = Frame(self, bg=COLOR_FONDO)
-        btn_frame.pack(side="bottom", pady=30)
-        estilo_btn = {"bg": COLOR_BOTON, "fg": "white", "font": ("Arial", 11, "bold"), "width": 15, "cursor": "hand2"}
+        btn_frame.pack(side="bottom", pady=20)
         
-        txt_confirmar = "Guardar" if modo == "insertar" else "Actualizar"
-        Button(btn_frame, text=txt_confirmar, command=self.guardar, **estilo_btn).pack(side="left", padx=20)
-        Button(btn_frame, text="Cancelar", command=self.limpiar, **estilo_btn).pack(side="left", padx=20)
-        Button(btn_frame, text="Volver", command=lambda: controlador.mostrar_pantalla("productos_main"), **estilo_btn).pack(side="left", padx=20)
+        txt_confirmar = "GUARDAR" if modo == "insertar" else "ACTUALIZAR"
+        Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("productos_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+
+    def cargar_lista_proveedores(self):
+        """Llena la tabla de la derecha"""
+        for item in self.tree_prov.get_children():
+            self.tree_prov.delete(item)
+        # Llamada al método nuevo del modelo
+        datos = Productos.obtener_lista_proveedores()
+        for row in datos:
+            self.tree_prov.insert("", "end", values=row)
+
+    def seleccionar_proveedor(self, event):
+        """Toma el ID del proveedor seleccionado y lo pone en el Entry"""
+        seleccion = self.tree_prov.focus()
+        if seleccion:
+            valores = self.tree_prov.item(seleccion, "values")
+            # valores[0] es el ID
+            self.vars["prov"].set(valores[0])
 
     def limpiar(self):
         for key in self.vars:
@@ -187,7 +215,6 @@ class ProductosInsertar(EstiloBase):
             else: self.vars[key].set("")
 
     def guardar(self):
-        # Convertir vacíos a 0 para evitar errores numéricos
         cant = self.vars["cantidad"].get() if str(self.vars["cantidad"].get()) else 0.0
         prec = self.vars["precio"].get() if str(self.vars["precio"].get()) else 0.0
         
@@ -206,9 +233,6 @@ class ProductosInsertar(EstiloBase):
                 self.controlador.pantallas["productos_main"].cargar_datos()
 
 
-# ==========================================================
-# PANTALLA 3: ACTUALIZAR (Hereda de Insertar)
-# ==========================================================
 class ProductosActualizar(ProductosInsertar):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, modo="actualizar")
@@ -222,11 +246,10 @@ class ProductosActualizar(ProductosInsertar):
         self.vars["precio"].set(valores[5])
         self.vars["caducidad"].set(valores[6])
         self.vars["prov"].set(valores[7])
+        # Recargar proveedores por si hubo cambios
+        self.cargar_lista_proveedores()
 
 
-# ==========================================================
-# PANTALLA 4: ELIMINAR
-# ==========================================================
 class ProductosEliminar(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "ELIMINAR PRODUCTO")
@@ -236,18 +259,18 @@ class ProductosEliminar(EstiloBase):
         cuerpo.pack(expand=True, fill="both", padx=50, pady=50)
 
         Label(cuerpo, text="¿Estás seguro que deseas eliminar este producto?", 
-            bg=COLOR_FONDO, fg="white", font=("Arial", 16)).pack(pady=20)
+            bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
 
-        self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 14), padx=20, pady=20)
+        self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 16), padx=20, pady=20)
         self.lbl_info.pack(pady=10, fill="x")
 
         btn_frame = Frame(cuerpo, bg=COLOR_FONDO)
         btn_frame.pack(pady=40)
 
-        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=("Arial", 12, "bold"),
+        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=FONT_BTN,
             command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
         
-        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=("Arial", 12, "bold"),
+        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=FONT_BTN,
             command=lambda: controlador.mostrar_pantalla("productos_main"), cursor="hand2").pack(side="left", padx=20)
 
     def cargar_datos_vista(self, valores):
