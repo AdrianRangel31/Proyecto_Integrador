@@ -13,3 +13,4 @@ def obtener_imagen(nombre, ancho, alto):
         return ImageTk.PhotoImage(img)
     else:
         return None
+
