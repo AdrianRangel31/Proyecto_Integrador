@@ -194,7 +194,8 @@ class mainVentas(Frame):
 
         self.tabla2 = tabla(
             frame_tabladetalles,
-            columnas_detalles
+            columnas_detalles,
+            anchos=[5,15,120,20,30]
         )
 
         """
@@ -251,7 +252,7 @@ class insertarVentas(Frame):
         self.controlador = controlador
         head = header(self, controlador)
         head.pack(fill="x")
-
+        self.id_seleccionado = id_seleccionado
         # --- SCROLLABLE BODY (vertical only) para insertarVentas ---
         container = Frame(self)
         container.pack(fill="both", expand=True, padx=30, pady=30)
@@ -358,11 +359,11 @@ class insertarVentas(Frame):
                 frame_total.grid(row=0,column=1,sticky="nsew",pady=50,padx=20)
                 frame_prod.grid_propagate(False)
             case "actualizar":
-                head.titulo = f"Actualizar venta {id_seleccionado}"
-                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=50)
-                frame_total.grid(row=1,column=1,sticky="nsew",pady=50,padx=20)
+                head.titulo = f"Actualizar venta {self.id_seleccionado}"
+                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=5)
+                frame_total.grid(row=1,column=1,sticky="nsew",padx=20,pady=5)
                 body.rowconfigure(1, weight=1)
-                frame_tablas = Frame(body,bg="white",height=300)
+                frame_tablas = Frame(body,bg="white",height=260)
                 frame_tablas.pack_propagate(False)
                 frame_tablas.grid(row=0,column=0,sticky="nsew",pady=(20,0),padx=10,columnspan=2)
                 columnas_ventas = ["ID", "Fecha", "Total"]
@@ -373,7 +374,7 @@ class insertarVentas(Frame):
                     frame_tablaventas,
                     columnas_ventas
                 )
-                self.registros_venta = ventasCRUD.ventas.buscar("ID",id_seleccionado)
+                self.registros_venta = ventasCRUD.ventas.buscar("ID",self.id_seleccionado)
                 self.tabla.cargar(self.registros_venta)
 
                 columnas_detalle = ["ID", "ID_venta", "Producto","Cantidad","Subtotal"]
@@ -382,17 +383,19 @@ class insertarVentas(Frame):
                 frame_tabladetalles.pack_propagate(False)
                 self.tabla2 = tabla(
                     frame_tabladetalles,
-                    columnas_detalle
+                    columnas_detalle,
+                    anchos=[5,15,120,20,30]
                 )
-                self.registros_detalles = ventasCRUD.detalleVenta.buscar(id_seleccionado)
+                self.registros_detalles = ventasCRUD.detalleVenta.buscar(self.id_seleccionado)
                 self.tabla2.cargar(self.registros_detalles)
 
-                btn_agregar.config(text="Actualizar venta",command=lambda:"")
+                btn_agregar.config(text="Actualizar venta",command=lambda:self.actualizarVenta())
 
-                self.cantidades = ventasCRUD.detalleVenta.obtener_cantidad(id_seleccionado)
+                self.cantidades = ventasCRUD.detalleVenta.obtener_cantidades(self.id_seleccionado)
                 i=0
                 for cantidad in self.cantidades:
-                    self.spinbox_prod[i].config(values = cantidad)
+                    self.spinbox_prod[i].delete(0, "end")
+                    self.spinbox_prod[i].insert(0, cantidad)
                     i+=1
                 
 
@@ -425,10 +428,26 @@ class insertarVentas(Frame):
             messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
 
     def actualizarVenta(self):
-        pass
+        i=0
+        for cantidad in self.cantidades:
+            valor = int(self.spinbox_prod[i].get())
+            if valor != cantidad[0]: #Detecta si el usuario cambio un spinbox
+                id_detalle = ventasCRUD.detalleVenta.obtener_id_detalle(self.id_seleccionado,i+1) 
+                if valor == 0:
+                    eliminar = ventasCRUD.detalleVenta.eliminar(id_detalle[0])
+                    if eliminar:
+                        messagebox.showinfo("Exito", "La venta se eliminó exitosamente.")
+
+                else: 
+                    actualizar = ventasCRUD.detalleVenta.actualizar(id_detalle[0],valor,self.opciones_prod[i])
+                    if actualizar:
+                        messagebox.showinfo("Exito", "La venta se actualizó exitosamente.")
+
+
+            i+=1
 
 class tabla(ttk.Treeview):
-    def __init__(self, parent, columnas, callback_seleccion=None):
+    def __init__(self, parent, columnas, callback_seleccion=None,anchos=None):
         self.columnas = columnas
         self.callback = callback_seleccion  
         chartframe = Frame(parent, bg="white")
@@ -446,9 +465,14 @@ class tabla(ttk.Treeview):
             table_container, orient="vertical", command=self.yview
         )
         self.configure(yscrollcommand=vsb.set)
-        for col in self.columnas:
-            self.heading(col, text=col)
-            self.column(col, anchor="center", width=120)
+        if anchos == None:
+            for col in self.columnas:
+                self.heading(col, text=col)
+                self.column(col, anchor="center", width=120)
+        else:
+            for col,an in zip(self.columnas,anchos):
+                self.heading(col, text=col)
+                self.column(col, anchor="center", width=an)
 
         self.grid(row=0, column=0, sticky="nsew")
         vsb.grid(row=0, column=1, sticky="ns")

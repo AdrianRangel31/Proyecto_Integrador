@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import os
 import sys
-
+from view.header import *
 # --- IMPORTS DE RUTAS ---
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(ruta_raiz)
@@ -41,7 +41,7 @@ class EstiloBase(Frame):
         
         Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
             bd=0, activebackground=COLOR_HEADER, cursor="hand2",
-            command=lambda: controlador.mostrar_pantalla("plantilla")).pack(side="left", padx=10)
+            command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
 
         Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
 

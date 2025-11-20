@@ -10,9 +10,10 @@ class header(Frame):
         lbl_logo = Label(self, image=self.logo_img, compound="top", height=150, bg="#F82A3E")
         lbl_logo.grid(row=0, column=0)
         self.home_img = obtener_imagen("home.png", 140, 140)
-        lbl_home = Button(self, image=self.home_img, height=150, bg="#F82A3E", relief="flat"
-                          ,activebackground="#F82A3E")
-        lbl_home.grid(row=0, column=1)
+        btn_home = Button(self, image=self.home_img, height=150, bg="#F82A3E", relief="flat"
+                          ,activebackground="#F82A3E",
+                          command=lambda: self.controlador.mostrar_pantalla("Dashboard"))
+        btn_home.grid(row=0, column=1)
         self.__titulo.grid(row=0, column=2, padx=350)
 
     @property

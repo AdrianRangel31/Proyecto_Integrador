@@ -44,6 +44,20 @@ class ventas:
 
 class detalleVenta:
     @staticmethod
+    def insertar(id_venta,producto,cantidad):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+                return False
+        cursor.execute(f"select id_menu,precio from menu where nombre = '{producto}'")
+        registros = cursor.fetchall()
+        id_producto = registros[0][0]
+        precio = registros[0][1]
+        cursor.execute(f"insert into detalle_venta values(NULL,{id_venta},{id_producto},{cantidad},{precio*cantidad})")    
+        conexion.commit()
+        return True
+    
+    @staticmethod
     def buscar(id):
         cursor, conexion = conectarBD()
         if cursor == None:
@@ -55,28 +69,45 @@ class detalleVenta:
             WHERE dv.id_venta = %s
         """, (id,))
         return cursor.fetchall()
-    
     @staticmethod
-    def obtener_cantidad(id):
+    def actualizar(id_detalle,valor,producto):
         cursor, conexion = conectarBD()
         if cursor == None:
                 messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-        cursor.execute(f"select cantidad from detalle_venta where id_venta = {id}")
-        return cursor.fetchall()
-     
-
-    @staticmethod
-    def insertar(id_venta,producto,cantidad):
-        cursor, conexion = conectarBD()
-        if cursor == None:
-                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-        cursor.execute(f"select id_menu,precio from menu where nombre = '{producto}'")
+                return False
+        cursor.execute(f"select precio from menu where nombre = '{producto}'")
         registros = cursor.fetchall()
-        id_producto = registros[0][0]
-        precio = registros[0][1]
-        cursor.execute(f"insert into detalle_venta values(NULL,{id_venta},{id_producto},{cantidad},{precio*cantidad})")    
+        precio = registros[0][0]
+        cursor.execute(f"update detalle_venta set cantidad = {valor}, subtotal = {valor*precio} where id_detalle = {id_detalle}")
         conexion.commit()
         return True
+    
+    @staticmethod
+    def eliminar(id_detalle):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+                return False
+        cursor.execute(f"delete from detalle_venta where id_detalle = {id_detalle}")
+        conexion.commit()
+        return True
+
+    @staticmethod
+    def obtener_cantidades(id_venta):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+        cursor.execute(f"select cantidad from detalle_venta where id_venta = {id_venta}")
+        return cursor.fetchall()
+    @staticmethod
+
+    def obtener_id_detalle(id_venta,id_producto):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+                messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+        cursor.execute(f"select id_detalle from detalle_venta where id_venta = {id_venta} and id_menu = {id_producto}")
+        return cursor.fetchone()
+
 
 class menu:
     @staticmethod

@@ -88,3 +88,7 @@ class Login(Frame):
         boton_iniciar = Button(frame_derecha, text="Iniciar sesión", 
                                font=font_boton, bg="#333", fg="white", command=lambda:self.controlador.mostrar_pantalla("Dashboard")) 
         boton_iniciar.pack(pady=p_boton_y, fill="x", padx=p_entry_x)
+
+        boton_salir = Button(frame_derecha, text="Salir", 
+                               font=font_boton, bg="#333", fg="white", command=lambda:self.destroy()) 
+        boton_salir.pack(pady=5, fill="x", padx=p_entry_x)
