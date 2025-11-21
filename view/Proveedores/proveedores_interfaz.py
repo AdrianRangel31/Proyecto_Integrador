@@ -1,0 +1,242 @@
+from tkinter import *
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+import os
+import sys
+from view.header import *
+# --- IMPORTS DE RUTAS ---
+ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(ruta_raiz)
+
+from model.proveedoresCRUD import Proveedores
+from controller.funciones import obtener_imagen
+
+# --- CONSTANTES DE ESTILO ---
+COLOR_HEADER = "#FF3333"
+COLOR_FONDO = "#B71C1C"
+COLOR_BOTON = "#5DADE2"
+COLOR_TEXTO_LBL = "#5DADE2"
+COLOR_BLANCO = "#FFFFFF"
+
+FONT_TITLE = ("Arial", 24, "bold")       
+FONT_LABEL = ("Arial", 12, "bold")       
+FONT_INPUT = ("Arial", 12)               
+FONT_BTN = ("Arial", 12, "bold")        
+FONT_TABLE = ("Arial", 11)               
+
+class EstiloBase(Frame):
+    def __init__(self, master, controlador, titulo):
+        super().__init__(master)
+        self.controlador = controlador
+        self.configure(bg=COLOR_FONDO)
+        
+        # --- ENCABEZADO ---
+        header = Frame(self, bg=COLOR_HEADER, height=110)
+        header.pack(fill="x", side="top")
+        header.pack_propagate(False)
+
+        self.img_logo_small = obtener_imagen("logo.png", 90, 90)
+        if self.img_logo_small:
+            Label(header, image=self.img_logo_small, bg=COLOR_HEADER).pack(side="left", padx=15, pady=5)
+        
+        Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
+            bd=0, activebackground=COLOR_HEADER, cursor="hand2",
+            command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
+
+        Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
+
+
+# ==========================================================
+# PANTALLA 1: MAIN (TABLA DE PROVEEDORES)
+# ==========================================================
+class ProveedoresMain(EstiloBase):
+    def __init__(self, master, controlador):
+        super().__init__(master, controlador, "GESTION DE PROVEEDORES")
+        
+        frame_tabla = Frame(self, bg="white")
+        frame_tabla.pack(expand=True, fill="both", padx=30, pady=30)
+
+        scroll = Scrollbar(frame_tabla)
+        scroll.pack(side="right", fill="y")
+
+        # --- CORRECCIÓN: Columnas exactas del diagrama ---
+        cols = ("ID", "Nombre", "Contacto", "Telefono", "Direccion")
+        self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
+        
+        # --- ESTILOS DE TABLA ---
+        style = ttk.Style()
+        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
+        style.configure("Treeview.Heading", font=("Arial", 12, "bold"))
+
+        anchos = [50, 200, 150, 120, 250]
+        for col, ancho in zip(cols, anchos):
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=ancho, anchor="center" if col == "ID" else "w")
+        
+        self.tree.pack(expand=True, fill="both")
+        scroll.config(command=self.tree.yview)
+
+        frame_botones = Frame(self, bg=COLOR_FONDO)
+        frame_botones.pack(fill="x", pady=20, padx=40)
+
+        btn_opts = {"bg": COLOR_BOTON, "fg": "white", "font": FONT_BTN, "width": 15, "bd": 0, "cursor": "hand2"}
+
+        Button(frame_botones, text="Añadir", command=lambda: controlador.mostrar_pantalla("proveedores_insertar"), **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="Actualizar", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="Eliminar", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="Refrescar", command=self.cargar_datos, **btn_opts).pack(side="right", padx=10)
+
+        self.cargar_datos()
+
+    def cargar_datos(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        datos = Proveedores.buscar()
+        for fila in datos:
+            self.tree.insert("", "end", values=fila)
+
+    def ir_a_actualizar(self):
+        seleccion = self.tree.focus()
+        if seleccion:
+            valores = self.tree.item(seleccion, "values")
+            pantalla_act = self.controlador.pantallas["proveedores_actualizar"]
+            pantalla_act.cargar_datos_formulario(valores)
+            self.controlador.mostrar_pantalla("proveedores_actualizar")
+        else:
+            messagebox.showwarning("Atención", "Seleccione un proveedor para actualizar")
+
+    def ir_a_eliminar(self):
+        seleccion = self.tree.focus()
+        if seleccion:
+            valores = self.tree.item(seleccion, "values")
+            pantalla_eli = self.controlador.pantallas["proveedores_eliminar"]
+            pantalla_eli.cargar_datos_vista(valores)
+            self.controlador.mostrar_pantalla("proveedores_eliminar")
+        else:
+            messagebox.showwarning("Atención", "Seleccione un proveedor para eliminar")
+
+
+# ==========================================================
+# PANTALLA 2: INSERTAR (FORMULARIO)
+# ==========================================================
+class ProveedoresInsertar(EstiloBase):
+    def __init__(self, master, controlador, modo="insertar"):
+        titulo = "AÑADIR PROVEEDOR" if modo == "insertar" else "ACTUALIZAR PROVEEDOR"
+        super().__init__(master, controlador, titulo)
+        self.modo = modo
+        self.id_proveedor_actual = None 
+
+        cuerpo = Frame(self, bg=COLOR_FONDO)
+        cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
+
+        # Formulario centrado
+        form_frame = Frame(cuerpo, bg=COLOR_FONDO)
+        form_frame.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.8)
+
+        self.vars = {
+            "nombre": StringVar(), 
+            "contacto": StringVar(),
+            "telefono": StringVar(), 
+            "direccion": StringVar()
+        }
+
+        # --- CORRECCIÓN: Campos exactos del diagrama ---
+        campos = [
+            ("Nombre de la Empresa", "nombre"), 
+            ("Nombre del Contacto", "contacto"),
+            ("Teléfono", "telefono"),
+            ("Dirección Física", "direccion")
+        ]
+
+        for idx, (lbl_text, var_key) in enumerate(campos):
+            Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
+                font=FONT_LABEL, width=40, anchor="w", padx=10).pack(pady=(15, 5), anchor="w")
+            
+            Entry(form_frame, textvariable=self.vars[var_key], width=45, font=FONT_INPUT).pack(pady=0, ipady=5, anchor="w", padx=5)
+
+        # --- BOTONES ---
+        btn_frame = Frame(self, bg=COLOR_FONDO)
+        btn_frame.pack(side="bottom", pady=40)
+        
+        txt_confirmar = "GUARDAR" if modo == "insertar" else "ACTUALIZAR"
+        Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("proveedores_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+
+    def limpiar(self):
+        for key in self.vars:
+            self.vars[key].set("")
+
+    def guardar(self):
+        if not self.vars["nombre"].get():
+            messagebox.showwarning("Error", "El nombre es obligatorio")
+            return
+
+        # Enviamos los 4 datos (Nombre, Contacto, Tel, Dir)
+        datos = [
+            self.vars["nombre"].get(), 
+            self.vars["contacto"].get(),
+            self.vars["telefono"].get(),
+            self.vars["direccion"].get()
+        ]
+        
+        if self.modo == "insertar":
+            if Proveedores.insertar(*datos):
+                messagebox.showinfo("Éxito", "Proveedor agregado correctamente")
+                self.limpiar()
+                self.controlador.pantallas["proveedores_main"].cargar_datos()
+        else:
+            if Proveedores.actualizar(self.id_proveedor_actual, *datos):
+                messagebox.showinfo("Éxito", "Proveedor actualizado correctamente")
+                self.controlador.mostrar_pantalla("proveedores_main")
+                self.controlador.pantallas["proveedores_main"].cargar_datos()
+
+
+class ProveedoresActualizar(ProveedoresInsertar):
+    def __init__(self, master, controlador):
+        super().__init__(master, controlador, modo="actualizar")
+
+    def cargar_datos_formulario(self, valores):
+        # Mapeo de columnas Treeview -> Formulario
+        # Orden: ID (0), Nombre (1), Contacto (2), Telefono (3), Direccion (4)
+        self.id_proveedor_actual = valores[0]
+        self.vars["nombre"].set(valores[1])
+        self.vars["contacto"].set(valores[2])
+        self.vars["telefono"].set(valores[3])
+        self.vars["direccion"].set(valores[4])
+
+
+class ProveedoresEliminar(EstiloBase):
+    def __init__(self, master, controlador):
+        super().__init__(master, controlador, "ELIMINAR PROVEEDOR")
+        self.id_a_eliminar = None
+
+        cuerpo = Frame(self, bg=COLOR_FONDO)
+        cuerpo.pack(expand=True, fill="both", padx=50, pady=50)
+
+        Label(cuerpo, text="¿Estás seguro que deseas eliminar este proveedor?", 
+            bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
+
+        self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 16), padx=20, pady=20)
+        self.lbl_info.pack(pady=10, fill="x")
+
+        btn_frame = Frame(cuerpo, bg=COLOR_FONDO)
+        btn_frame.pack(pady=40)
+
+        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=FONT_BTN,
+            command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
+        
+        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=FONT_BTN,
+            command=lambda: controlador.mostrar_pantalla("proveedores_main"), cursor="hand2").pack(side="left", padx=20)
+
+    def cargar_datos_vista(self, valores):
+        self.id_a_eliminar = valores[0]
+        texto = f"ID: {valores[0]}\nEmpresa: {valores[1]}\nContacto: {valores[2]}"
+        self.lbl_info.config(text=texto)
+
+    def confirmar_eliminar(self):
+        if self.id_a_eliminar:
+            if Proveedores.eliminar(self.id_a_eliminar):
+                messagebox.showinfo("Eliminado", "El proveedor ha sido eliminado.")
+                self.controlador.pantallas["proveedores_main"].cargar_datos()
+                self.controlador.mostrar_pantalla("proveedores_main")
