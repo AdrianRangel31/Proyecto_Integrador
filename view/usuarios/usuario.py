@@ -1,5 +1,6 @@
 from tkinter import *
 from view.header import *
+from model.usuariosCRUD import *
 #Plantilla para realizar interfaces. Seguir la siguiente estructura para las clases principales
 
 class Login(Frame):
@@ -75,20 +76,36 @@ class Login(Frame):
                              fg="white", font=font_label)
         label_correo.pack(pady=(p_label_y, 0), anchor="w") 
         
-        entry_correo = Entry(frame_derecha, width=30, font=font_entry)
-        entry_correo.pack(pady=p_entry_y, padx=p_entry_x, fill="x") 
+        self.email = StringVar()
+        self.entry_correo = Entry(frame_derecha, textvariable=self.email , width=30, font=font_entry)
+        self.entry_correo.pack(pady=p_entry_y, padx=p_entry_x, fill="x") 
 
         label_pass = Label(frame_derecha, text="Contraseña:", bg="#F82A3E", 
                            fg="white", font=font_label)
         label_pass.pack(pady=(p_label_y, 0), anchor="w")
         
-        entry_pass = Entry(frame_derecha, width=30, font=font_entry, show="*")
-        entry_pass.pack(pady=p_entry_y, padx=p_entry_x, fill="x")
+        self.password = StringVar()
+        self.entry_pass = Entry(frame_derecha, textvariable=self.password , width=30, font=font_entry, show="*")
+        self.entry_pass.pack(pady=p_entry_y, padx=p_entry_x, fill="x")
 
         boton_iniciar = Button(frame_derecha, text="Iniciar sesión", 
-                               font=font_boton, bg="#333", fg="white", command=lambda:self.controlador.mostrar_pantalla("Dashboard")) 
+                               font=font_boton, bg="#333", fg="white", command= self.validar_campos) 
         boton_iniciar.pack(pady=p_boton_y, fill="x", padx=p_entry_x)
 
-        boton_salir = Button(frame_derecha, text="Salir", 
-                               font=font_boton, bg="#333", fg="white", command=lambda:self.destroy()) 
-        boton_salir.pack(pady=5, fill="x", padx=p_entry_x)
+    def validar_campos(self):
+        
+        correo = self.entry_correo.get()
+        password = self.entry_pass.get()
+
+        if not correo or not password:
+            messagebox.showwarning(title="Advertencia", icon="warning", message="Por favor llene todos los campos")
+            return
+        
+        self.verificar(correo,password)
+
+    def verificar(self,correo,password):
+        registro = Usuarios.iniciar_sesion(correo,password)
+        if registro:
+            self.controlador.mostrar_pantalla("Dashboard")
+        else:
+            messagebox.showerror("Error","Usuario o contraseña incorrectos")

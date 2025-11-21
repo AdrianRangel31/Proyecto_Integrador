@@ -189,8 +189,9 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = Login(self, self)
         self.pantallas["Dashboard"] = Dashboard(self, self)
-        self.pantallas["plantilla"] = Plantilla(self,self)#Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
-
+        self.pantallas["plantilla"] = Plantilla(self,self) #Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
+        self.mostrar_pantalla("Login")
+        
         #---------------------------------------------------------------
         #                       PANTALLAS PRODUCTOS
         #---------------------------------------------------------------
@@ -198,17 +199,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
 
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
-
-
-
-        #---------------------------------------------------------------
-        #                       PANTALLAS PROVEEDORES
-        #---------------------------------------------------------------
-        self.pantallas["proveedores_main"] = ProveedoresMain(self, self)
-        self.pantallas["proveedores_insertar"] = ProveedoresInsertar(self, self)
-        self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
-        self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
-        self.mostrar_pantalla("Login")
+        #self.mostrar_pantalla("mainventas")
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         match nombre:
