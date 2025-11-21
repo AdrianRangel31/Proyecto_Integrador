@@ -42,7 +42,7 @@ class EstiloBase(Frame):
         
         Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
             bd=0, activebackground=COLOR_HEADER, cursor="hand2",
-            command=lambda: controlador.mostrar_pantalla("plantilla")).pack(side="left", padx=10)
+            command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
 
         Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
 

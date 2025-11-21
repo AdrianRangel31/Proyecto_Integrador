@@ -194,39 +194,42 @@ class mainVentas(Frame):
 
         self.tabla2 = tabla(
             frame_tabladetalles,
-            columnas_detalles
+            columnas_detalles,
+            anchos=[5,15,120,20,30]
         )
-
-        """
-        def seleccionar_fila(event):
-            fila = self.tabla2.selection()  # Obtiene ID(s) de las filas seleccionadas
-            if fila:
-                valores = self.tabla2.item(fila[0], "values")
-                self.id_seleccionado = valores[0]
-            print(self.id_seleccionado)
-        self.tabla2.bind("<<TreeviewSelect>>", seleccionar_fila) 
-        """
-        # -------------------------------------------------------------------
 
     def buscar_venta(self,campo,valor):
         registros = ventasCRUD.ventas.buscar(campo,valor)
-        for row in self.tabla.get_children():
-            self.tabla.delete(row)
-        for fila in registros:
-            self.tabla.insert("", "end", values=fila)
+        self.tabla.cargar(registros)
 
     def eliminar_venta(self):
-        confirmar = messagebox.askyesno("ADVERTENCIA", 
-                                       f"El ID seleccionado es: {self.id_seleccionado}\n¿Está seguro de que desea eliminar este registro?")
-        if confirmar:
-            eliminar = ventasCRUD.ventas.eliminar(self.id_seleccionado)
-            if eliminar:
-                messagebox.showinfo("Exito", 
-                                f"El registro con ID = {self.id_seleccionado} se eliminó exitosamente")
-                self.buscar_venta("Todo","")
-            else: 
-                messagebox.showinfo("Error", 
-                                    "No se pudo eliminar el registro")      
+        if self.id_seleccionado == 0:
+            messagebox.showinfo("Aviso", "Seleccione un registro para continuar.")
+            return
+        confirmar = messagebox.askyesno(
+            "ADVERTENCIA",
+            f"Al eliminar la venta con ID = {self.id_seleccionado}, también se eliminarán todos los detalles asociados a esa venta.\n\n¿Desea continuar?"
+        )
+        if not confirmar:
+            return
+
+        # Primero eliminar detalles
+        ok_det = ventasCRUD.detalleVenta.eliminar_por_venta(self.id_seleccionado)
+        if not ok_det:
+            messagebox.showerror("Error", "No se pudieron eliminar los detalles de la venta. Operación cancelada.")
+            return
+
+        # Luego eliminar la venta
+        ok_venta = ventasCRUD.ventas.eliminar(self.id_seleccionado)
+        if ok_venta:
+            messagebox.showinfo("Exito", f"El registro con ID = {self.id_seleccionado} y todos sus detalles se eliminaron exitosamente")
+            self.buscar_venta("Todo","")
+            # limpiar tabla detalles
+            for row in self.tabla2.get_children():
+                self.tabla2.delete(row)
+            self.id_seleccionado = 0
+        else:
+            messagebox.showerror("Error", "No se pudo eliminar el registro de venta aunque los detalles fueron eliminados.")
 
     def ver_detalles(self):
         if self.id_seleccionado == 0:
@@ -241,9 +244,6 @@ class mainVentas(Frame):
     def actualizar_id(self, id_recibido):
         self.id_seleccionado = id_recibido
         print("ID seleccionado:", id_recibido)
-    def buscar_venta(self, campo, valor):
-        registros = ventasCRUD.ventas.buscar(campo, valor)
-        self.tabla.cargar(registros)
 
 class insertarVentas(Frame):
     def __init__(self, master, controlador,accion,id_seleccionado=None):
@@ -251,7 +251,7 @@ class insertarVentas(Frame):
         self.controlador = controlador
         head = header(self, controlador)
         head.pack(fill="x")
-
+        self.id_seleccionado = id_seleccionado
         # --- SCROLLABLE BODY (vertical only) para insertarVentas ---
         container = Frame(self)
         container.pack(fill="both", expand=True, padx=30, pady=30)
@@ -281,7 +281,9 @@ class insertarVentas(Frame):
         body.columnconfigure(1, weight=1)
         body.rowconfigure(0, weight=1)
 
-        self.precios = [fila[0] for fila in ventasCRUD.menu.obtenerPrecios()]
+        precios_result = ventasCRUD.menu.obtenerPrecios()
+        # precios_result is list of tuples (precio,) or empty list
+        self.precios = [fila[0] for fila in precios_result] if precios_result else []
 
         frame_prod = Frame(body,bg=COLOR_FRAME)
         frame_total = Frame(body,bg=COLOR_FRAME)
@@ -296,7 +298,8 @@ class insertarVentas(Frame):
 
 
         #self.opciones_prod = ["Hamburguesa doble","Hamburguesa especial","Hamburguesa especial","Hotdog","Ingrediente extra","Refresco","Agua"]
-        self.opciones_prod = [fila[0] for fila in ventasCRUD.menu.obtenerProductos()]
+        productos_result = ventasCRUD.menu.obtenerProductos()
+        self.opciones_prod = [fila[0] for fila in productos_result] if productos_result else []
 
         for i in range(len(self.opciones_prod)):
             lbl = Label(frame_prod,text=self.opciones_prod[i],font=("Arial", 20),fg="black",bg="white", highlightthickness=2,
@@ -307,7 +310,10 @@ class insertarVentas(Frame):
         self.spinbox_prod = []
 
         for i in range(len(self.opciones_prod)):
-            vcmd = (self.register(lambda val, idx=i: self.validar_spin(val, idx)), "%P")
+            # validation uses index closure - create function that captures i
+            def make_vcmd(idx):
+                return (self.register(lambda val, idx=idx: self.validar_spin(val, idx)), "%P")
+            vcmd = make_vcmd(i)
             spin = Spinbox(
                 frame_prod,
                 from_=0, to=100,
@@ -322,7 +328,7 @@ class insertarVentas(Frame):
                 highlightcolor="black",
                 command=lambda idx=i: self.spin_cambio(idx, self.spinbox_prod[idx].get()),
                 validate="key",
-                validatecommand=lambda:vcmd
+                validatecommand=vcmd
             )
             self.spinbox_prod.append(spin)
             spin.grid(row=i+1, column=1, sticky="nsew")
@@ -358,11 +364,11 @@ class insertarVentas(Frame):
                 frame_total.grid(row=0,column=1,sticky="nsew",pady=50,padx=20)
                 frame_prod.grid_propagate(False)
             case "actualizar":
-                head.titulo = f"Actualizar venta {id_seleccionado}"
-                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=50)
-                frame_total.grid(row=1,column=1,sticky="nsew",pady=50,padx=20)
+                head.titulo = f"Actualizar venta {self.id_seleccionado}"
+                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=5)
+                frame_total.grid(row=1,column=1,sticky="nsew",padx=20,pady=5)
                 body.rowconfigure(1, weight=1)
-                frame_tablas = Frame(body,bg="white",height=300)
+                frame_tablas = Frame(body,bg="white",height=260)
                 frame_tablas.pack_propagate(False)
                 frame_tablas.grid(row=0,column=0,sticky="nsew",pady=(20,0),padx=10,columnspan=2)
                 columnas_ventas = ["ID", "Fecha", "Total"]
@@ -373,7 +379,7 @@ class insertarVentas(Frame):
                     frame_tablaventas,
                     columnas_ventas
                 )
-                self.registros_venta = ventasCRUD.ventas.buscar("ID",id_seleccionado)
+                self.registros_venta = ventasCRUD.ventas.buscar("ID",self.id_seleccionado)
                 self.tabla.cargar(self.registros_venta)
 
                 columnas_detalle = ["ID", "ID_venta", "Producto","Cantidad","Subtotal"]
@@ -382,32 +388,55 @@ class insertarVentas(Frame):
                 frame_tabladetalles.pack_propagate(False)
                 self.tabla2 = tabla(
                     frame_tabladetalles,
-                    columnas_detalle
+                    columnas_detalle,
+                    anchos=[5,15,120,20,30]
                 )
-                self.registros_detalles = ventasCRUD.detalleVenta.buscar(id_seleccionado)
+                self.registros_detalles = ventasCRUD.detalleVenta.buscar(self.id_seleccionado)
                 self.tabla2.cargar(self.registros_detalles)
 
-                btn_agregar.config(text="Actualizar venta",command=lambda:"")
+                btn_agregar.config(text="Actualizar venta",command=lambda:self.actualizarVenta())
 
-                self.cantidades = ventasCRUD.detalleVenta.obtener_cantidad(id_seleccionado)
+                # obtener_cantidades devuelve lista de ints, en orden de menu
+                self.cantidades = ventasCRUD.detalleVenta.obtener_cantidades(self.id_seleccionado)
+                # si por alguna razón devuelve None o vacío, rellenar con ceros según cantidad de productos
+                if not isinstance(self.cantidades, list) or len(self.cantidades) != len(self.opciones_prod):
+                    # fallback: crear lista de ceros con la longitud de opciones_prod
+                    self.cantidades = [0]*len(self.opciones_prod)
+
                 i=0
                 for cantidad in self.cantidades:
-                    self.spinbox_prod[i].config(values = cantidad)
+                    self.spinbox_prod[i].delete(0, "end")
+                    self.spinbox_prod[i].insert(0, str(cantidad))
                     i+=1
-                
+                # calcular total inicial basado en cantidades y precios
+                total = 0
+                for idx in range(len(self.opciones_prod)):
+                    precio = float(self.precios[idx]) if idx < len(self.precios) else 0
+                    total += int(self.cantidades[idx]) * precio
+                self.total_venta = total
+                self.lbl_total.config(text=f"$ {total:.2f}")
+
 
     def spin_cambio(self, index, valor):
+        # recalcula total cuando se cambia un spinbox
         cant_prod = []
         for i in range(len(self.spinbox_prod)):
-            cant_prod.append(self.spinbox_prod[i].get())
+            val = self.spinbox_prod[i].get()
+            try:
+                num = int(val) if val != "" else 0
+            except:
+                num = 0
+            cant_prod.append(num)
         total = 0
         for i in range(len(self.opciones_prod)):
-            total += float(cant_prod[i]) * float(self.precios[i])
-        self.lbl_total.config(text=f"$ {total}")
+            price = float(self.precios[i]) if i < len(self.precios) else 0
+            total += float(cant_prod[i]) * float(price)
+        self.lbl_total.config(text=f"$ {total:.2f}")
         self.total_venta = total
 
     def validar_spin(self, nuevo_valor, index):
         if nuevo_valor.isdigit() or nuevo_valor == "":
+            # no pasar index por validatecommand, solo recalcular total
             self.spin_cambio(index, nuevo_valor)
             return True
         return False
@@ -417,18 +446,108 @@ class insertarVentas(Frame):
             messagebox.showwarning("Advertencia","Ingrese productos para continuar")
             return
         insertar,id = ventasCRUD.ventas.insertar(self.total_venta)
+        if not insertar:
+            messagebox.showerror("Error","No se pudo insertar la venta.")
+            return
+        insertar_detalle_ok = True
         for i in range(len(self.spinbox_prod)):
             cantidad = int(self.spinbox_prod[i].get())
             if cantidad > 0:
-                insertar_detalle = ventasCRUD.detalleVenta.insertar(id,self.opciones_prod[i],cantidad)
-        if insertar and insertar_detalle:
+                ok = ventasCRUD.detalleVenta.insertar(id,self.opciones_prod[i],cantidad)
+                if not ok:
+                    insertar_detalle_ok = False
+        if insertar and insertar_detalle_ok:
             messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
+            self.controlador.mostrar_pantalla("mainventas")
+        else:
+            messagebox.showerror("Error", "Ocurrió un error al guardar los detalles de la venta.")
 
     def actualizarVenta(self):
-        pass
+        # toma las cantidades previas (self.cantidades) y las nuevas de los spinboxes
+        if self.id_seleccionado is None:
+            messagebox.showerror("Error", "ID de venta no definido.")
+            return
+
+        new_quantities = []
+        for sp in self.spinbox_prod:
+            try:
+                new_quantities.append(int(sp.get()))
+            except:
+                new_quantities.append(0)
+
+        # Si todos en cero -> eliminar todos los detalles y la venta
+        if all(q == 0 for q in new_quantities):
+            confirmar = messagebox.askyesno("Confirmar eliminación", "Todos los productos quedaron en 0. ¿Desea eliminar la venta completa?")
+            if not confirmar:
+                return
+            ok_det = ventasCRUD.detalleVenta.eliminar_por_venta(self.id_seleccionado)
+            ok_venta = ventasCRUD.ventas.eliminar(self.id_seleccionado)
+            if ok_det and ok_venta:
+                messagebox.showinfo("Éxito", "La venta y sus detalles se eliminaron correctamente.")
+                self.controlador.mostrar_pantalla("mainventas")
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar la venta por completo.")
+            return
+
+        # Caso general: revisar cada producto y aplicar insertar/actualizar/eliminar según cambio
+        any_error = False
+        for i in range(len(self.opciones_prod)):
+            prev = int(self.cantidades[i]) if i < len(self.cantidades) else 0
+            new = int(new_quantities[i])
+            if new == prev:
+                continue  # sin cambio
+
+            # Si prev == 0 y new > 0 -> insertar nuevo detalle
+            if prev == 0 and new > 0:
+                ok = ventasCRUD.detalleVenta.insertar(self.id_seleccionado, self.opciones_prod[i], new)
+                if not ok:
+                    any_error = True
+
+            # Si prev > 0 y new == 0 -> eliminar detalle
+            elif prev > 0 and new == 0:
+                id_det = ventasCRUD.detalleVenta.obtener_id_detalle(self.id_seleccionado, i+1)
+                if id_det is None:
+                    # no se encontró detalle: marcar error
+                    any_error = True
+                else:
+                    ok = ventasCRUD.detalleVenta.eliminar(id_det)
+                    if not ok:
+                        any_error = True
+
+            # Si prev >0 y new >0 (cambio de cantidad) -> actualizar
+            elif prev > 0 and new > 0:
+                id_det = ventasCRUD.detalleVenta.obtener_id_detalle(self.id_seleccionado, i+1)
+                if id_det is None:
+                    # intenta insertar si no existe (por seguridad)
+                    ok = ventasCRUD.detalleVenta.insertar(self.id_seleccionado, self.opciones_prod[i], new)
+                    if not ok:
+                        any_error = True
+                else:
+                    ok = ventasCRUD.detalleVenta.actualizar(id_det, new, self.opciones_prod[i])
+                    if not ok:
+                        any_error = True
+
+        # recalcular total y actualizar la fila de ventas
+        # recalcula sum(subtotal) desde DB para evitar errores
+        detalles = ventasCRUD.detalleVenta.buscar(self.id_seleccionado)
+        nuevo_total = 0.0
+        for d in detalles:
+            # d => (id_detalle, id_venta, nombre, cantidad, subtotal)
+            try:
+                nuevo_total += float(d[4])
+            except:
+                pass
+
+        ok_total = ventasCRUD.ventas.actualizar_total(self.id_seleccionado, nuevo_total)
+        if any_error or not ok_total:
+            messagebox.showerror("Error", "Ocurrieron errores al actualizar la venta. Revise la consola o la base de datos.")
+        else:
+            messagebox.showinfo("Éxito", "La venta se actualizó correctamente.")
+            self.controlador.mostrar_pantalla("mainventas")
+
 
 class tabla(ttk.Treeview):
-    def __init__(self, parent, columnas, callback_seleccion=None):
+    def __init__(self, parent, columnas, callback_seleccion=None,anchos=None):
         self.columnas = columnas
         self.callback = callback_seleccion  
         chartframe = Frame(parent, bg="white")
@@ -446,9 +565,14 @@ class tabla(ttk.Treeview):
             table_container, orient="vertical", command=self.yview
         )
         self.configure(yscrollcommand=vsb.set)
-        for col in self.columnas:
-            self.heading(col, text=col)
-            self.column(col, anchor="center", width=120)
+        if anchos == None:
+            for col in self.columnas:
+                self.heading(col, text=col)
+                self.column(col, anchor="center", width=120)
+        else:
+            for col,an in zip(self.columnas,anchos):
+                self.heading(col, text=col)
+                self.column(col, anchor="center", width=an)
 
         self.grid(row=0, column=0, sticky="nsew")
         vsb.grid(row=0, column=1, sticky="ns")

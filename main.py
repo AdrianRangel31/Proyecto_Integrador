@@ -6,6 +6,7 @@ from controller.funciones import *
 from view.ventas.ventas import *
 from tkinter import messagebox
 from view.Productos.productos import *
+from view.Proveedores.proveedores_interfaz import *
 
 class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
@@ -91,16 +92,36 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         frame_nav_top = Frame(frame_left, bg=COLOR_BLANCO)
         frame_nav_top.pack(side=TOP, fill=X)
 
-        for texto in botones_nav:
-            btn = Button(frame_nav_top, text=texto, 
-                         bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                         font=f_btn_nav, relief="flat", cursor="hand2")
-            btn.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
+
+        btn_ventas = Button(frame_nav_top, text="Ver ventas", 
+                     bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+                     font=f_btn_nav, relief="flat", cursor="hand2",
+                     command=lambda: self.controlador.mostrar_pantalla("mainventas"))
+        btn_ventas.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
+
+        btn_productos = Button(frame_nav_top, text="Ver productos", 
+                     bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+                     font=f_btn_nav, relief="flat", cursor="hand2",
+                     command=lambda: self.controlador.mostrar_pantalla("productos_main"))
+        btn_productos.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
+
+        btn_prov = Button(frame_nav_top, text="Ver proveedores", 
+                     bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+                     font=f_btn_nav, relief="flat", cursor="hand2",
+                     command=lambda: self.controlador.mostrar_pantalla("proveedores_main"))
+        btn_prov.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
+
+        btn_usuarios = Button(frame_nav_top, text="Ver usuarios", 
+                     bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+                     font=f_btn_nav, relief="flat", cursor="hand2",
+                     command=lambda: "")
+        btn_usuarios.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
         # Botón Cerrar Sesión
         btn_logout = Button(frame_left, text="Cerrar sesión", 
                             bg=COLOR_BOTON_ROJO, fg=COLOR_TEXTO_BLANCO,
-                            font=f_btn_nav, relief="flat", cursor="hand2")
+                            font=f_btn_nav, relief="flat", cursor="hand2",
+                            command=lambda: self.controlador.mostrar_pantalla("Login"))
         btn_logout.pack(side=BOTTOM, fill=X, ipady=btn_ipad_y)
 
 
@@ -175,7 +196,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         #                       PANTALLAS PRODUCTOS
         #---------------------------------------------------------------
         self.pantallas["productos_main"] = ProductosMain(self, self)
-        self.pantallas["productos_insertar"] = ProductosInsertar(self, self)
+
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
         #self.mostrar_pantalla("mainventas")
@@ -191,7 +212,8 @@ class App(Tk): #Clase donde va la ventana principal del sistema
                     messagebox.showwarning("Advertencia","Seleccione un registro para continuar")
                     return
                 self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar",parametro)
-
+            case "productos_insertar":
+                self.pantallas["productos_insertar"] = ProductosInsertar(self, self)
         for pantalla in self.pantallas.values():
             pantalla.pack_forget()
         self.pantallas[nombre].pack(expand=True, fill="both")
