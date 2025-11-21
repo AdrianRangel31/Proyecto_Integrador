@@ -1,5 +1,6 @@
 import os
 from PIL import Image, ImageTk
+from model.usuariosCRUD import *
 
 def obtener_imagen(nombre, ancho, alto):
     # Busca la carpeta 'images' desde la raíz del proyecto
@@ -13,4 +14,5 @@ def obtener_imagen(nombre, ancho, alto):
         return ImageTk.PhotoImage(img)
     else:
         return None
+
 
