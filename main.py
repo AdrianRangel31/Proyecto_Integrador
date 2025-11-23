@@ -209,7 +209,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
         self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
 
-        self.mostrar_pantalla("mainventas")
+        self.mostrar_pantalla("Login")
         
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
