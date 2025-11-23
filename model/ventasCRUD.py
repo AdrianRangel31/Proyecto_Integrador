@@ -246,6 +246,7 @@ class menu:
             messagebox.showerror("Error", f"No se pudieron obtener productos: {e}")
             return []
 
+# --- CLASE PARA REPORTES ---
 class reportes:
     @staticmethod
     def obtener_datos_grafico(periodo):
@@ -280,4 +281,36 @@ class reportes:
             return cursor.fetchall()
         except Exception as e:
             print(f"Error en reporte: {e}")
+            return []
+
+    @staticmethod
+    def obtener_ingresos_grafico(periodo):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            return []
+        
+        intervalo = ""
+        match periodo:
+            case "Semanal":
+                intervalo = "INTERVAL 1 WEEK"
+            case "Mensual":
+                intervalo = "INTERVAL 1 MONTH"
+            case "Trimestral":
+                intervalo = "INTERVAL 3 MONTH"
+            case _:
+                intervalo = "INTERVAL 1 WEEK" # Default
+
+        # Consulta para ingresos (ventas totales agrupadas por fecha)
+        query = f"""
+            SELECT fecha_venta, SUM(total_venta) as total_dia
+            FROM ventas
+            WHERE fecha_venta >= DATE_SUB(CURDATE(), {intervalo})
+            GROUP BY fecha_venta
+            ORDER BY fecha_venta ASC
+        """
+        try:
+            cursor.execute(query)
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error en reporte ingresos: {e}")
             return []

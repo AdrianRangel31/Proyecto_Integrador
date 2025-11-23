@@ -5,6 +5,7 @@ from tkcalendar import DateEntry
 from view.header import *
 from model import ventasCRUD
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import os
 from controller.funciones import obtener_imagen
 
@@ -81,35 +82,6 @@ class mainVentas(Frame):
         frameDETALLES = Frame(body, bg=COLOR_FRAME)
         frameDETALLES.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         frameDETALLES.pack_propagate(False)
-
-        # --- FRAME REPORTES (Modificado para gráficos) ---
-        frameREPORTES = Frame(body, bg=COLOR_FRAME, height=600)
-        frameREPORTES.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=20)
-        frameREPORTES.pack_propagate(False)
-        
-        # Contenedor para título y botones
-        frame_header_rep = Frame(frameREPORTES, bg=COLOR_FRAME)
-        frame_header_rep.pack(fill="x", pady=10)
-
-        lbl_reportes = Label(frame_header_rep, text="REPORTES DE VENTA", 
-                             font=("Arial", 22), bg=COLOR_FRAME, fg="white")
-        lbl_reportes.pack(side="left", padx=20)
-
-        # Botones de periodo
-        frame_botones_rep = Frame(frame_header_rep, bg=COLOR_FRAME)
-        frame_botones_rep.pack(side="right", padx=20)
-
-        Button(frame_botones_rep, text="Semanal", font=("Arial", 12),
-               command=lambda: self.actualizar_grafico("Semanal")).pack(side="left", padx=5)
-        Button(frame_botones_rep, text="Mensual", font=("Arial", 12),
-               command=lambda: self.actualizar_grafico("Mensual")).pack(side="left", padx=5)
-        Button(frame_botones_rep, text="Trimestral", font=("Arial", 12),
-               command=lambda: self.actualizar_grafico("Trimestral")).pack(side="left", padx=5)
-
-        # Label para mostrar la imagen del gráfico
-        self.lbl_imagen_grafico = Label(frameREPORTES, bg=COLOR_FRAME)
-        self.lbl_imagen_grafico.pack(expand=True, fill="both", padx=10, pady=10)
-        # --------------------------------------------------
 
         #FRAME VENTA - FILTRAR
         frame_filtrar = Frame(frameVENTA, bg=COLOR_FRAME)
@@ -224,26 +196,81 @@ class mainVentas(Frame):
             anchos=[5,15,120,20,30]
         )
         
-        # --- NUEVO: Ocultar Scrollbar de Detalles ---
-        # Buscamos el widget Scrollbar dentro del frame y lo ocultamos
-        for child in frame_tabladetalles.winfo_children():
-            if isinstance(child, ttk.Scrollbar):
-                child.pack_forget() # Ocultar
-        # --------------------------------------------
 
-        # Cargar gráfico inicial
-        self.actualizar_grafico("Semanal")
+
+        # --- FRAME REPORTES (Modificado para gráficos) ---
+        # Aumentamos un poco más la altura para que quepan dos gráficos cómodamente
+        frameREPORTES = Frame(body, bg=COLOR_FRAME, height=1200) 
+        frameREPORTES.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=20)
+        frameREPORTES.pack_propagate(False)
+        
+        # Contenedor para título
+        frame_header_rep = Frame(frameREPORTES, bg=COLOR_FRAME)
+        frame_header_rep.pack(anchor="nw",padx=(20,0),pady=(30,5))
+
+        lbl_reportes = Label(frame_header_rep, text="REPORTES DE VENTA", 
+                             font=("Arial", 24), bg=COLOR_FRAME, fg="white")
+        lbl_reportes.pack(side="left",pady=10)
+
+        # ---- SECCION 1: VENTAS POR PRODUCTO ----
+        lbl_seccion1 = Label(frameREPORTES, text="Ventas por producto", 
+                             font=("Arial", 20), bg=COLOR_FRAME, fg="white")
+        lbl_seccion1.pack(anchor="w", padx=40,pady=5)
+
+        # Botones de periodo 1
+        frame_botones_rep1 = Frame(frameREPORTES, bg=COLOR_FRAME)
+        frame_botones_rep1.pack(padx=40,anchor="w")
+        
+        Button(frame_botones_rep1, text="Semanal", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_vp("Semanal")).grid(row=0,column=0,padx=5,pady=2)
+        Button(frame_botones_rep1, text="Mensual", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_vp("Mensual")).grid(row=0,column=1,padx=5,pady=2)
+        Button(frame_botones_rep1, text="Trimestral", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_vp("Trimestral")).grid(row=0,column=2,padx=5,pady=2)
+         
+        # Label para mostrar la imagen del gráfico 1
+        self.lbl_imagen_grafico_vp = Label(frameREPORTES, bg=COLOR_FRAME)
+        self.lbl_imagen_grafico_vp.pack(padx=(40,0), pady=10,anchor="w")
+
+
+        # ---- SECCION 2: INGRESOS DEL NEGOCIO ----
+        lbl_seccion2 = Label(frameREPORTES, text="Ingresos del Negocio", 
+                             font=("Arial", 20), bg=COLOR_FRAME, fg="white")
+        lbl_seccion2.pack(anchor="w", padx=40, pady=(20, 5))
+
+        # Botones de periodo 2
+        frame_botones_rep2 = Frame(frameREPORTES, bg=COLOR_FRAME)
+        frame_botones_rep2.pack(padx=40, anchor="w")
+
+        Button(frame_botones_rep2, text="Semanal", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_ingresos("Semanal")).grid(row=0, column=0, padx=5, pady=2)
+        Button(frame_botones_rep2, text="Mensual", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_ingresos("Mensual")).grid(row=0, column=1, padx=5, pady=2)
+        Button(frame_botones_rep2, text="Trimestral", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
+               command=lambda: self.actualizar_grafico_ingresos("Trimestral")).grid(row=0, column=2, padx=5, pady=2)
+
+        # Label para mostrar la imagen del gráfico 2
+        self.lbl_imagen_grafico_ingresos = Label(frameREPORTES, bg=COLOR_FRAME)
+        self.lbl_imagen_grafico_ingresos.pack(padx=(40, 0), pady=10, anchor="w")
+        
+        # --------------------------------------------------
+        
+        # Cargar gráficos iniciales
+        self.actualizar_grafico_vp("Semanal") 
+        self.actualizar_grafico_ingresos("Semanal")
 
     # --- LÓGICA DE GRÁFICOS ---
-    def actualizar_grafico(self, periodo):
+    #vp: venta por producto
+    #in: ingresos
+    def actualizar_grafico_vp(self, periodo):#Grafico venta por producto
         datos = ventasCRUD.reportes.obtener_datos_grafico(periodo)
         if not datos:
-            self.lbl_imagen_grafico.config(image="", text="No hay datos para este periodo")
+            self.lbl_imagen_grafico_vp.config(image="", text="No hay datos para este periodo")
             return
         
-        self.generar_imagen_grafico(datos, periodo)
+        self.generar_imagen_grafico_vp(datos, periodo)
 
-    def generar_imagen_grafico(self, datos, periodo):
+    def generar_imagen_grafico_vp(self, datos, periodo):
         productos = [fila[0] for fila in datos]
         cantidades = [float(fila[1]) for fila in datos]
         totales = [float(fila[2]) for fila in datos]
@@ -277,7 +304,8 @@ class mainVentas(Frame):
         if not os.path.exists(ruta_carpeta):
             os.makedirs(ruta_carpeta)
             
-        nombre_archivo = "grafico_ventas.png"
+        # MODIFICADO: Incluye el periodo en el nombre
+        nombre_archivo = f"grafico_ventas_{periodo}.png"
         ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
         
         plt.savefig(ruta_completa)
@@ -287,9 +315,61 @@ class mainVentas(Frame):
         self.img_grafico = obtener_imagen(nombre_archivo, 800, 450)
         
         if self.img_grafico:
-            self.lbl_imagen_grafico.config(image=self.img_grafico, text="")
+            self.lbl_imagen_grafico_vp.config(image=self.img_grafico, text="")
         else:
-            self.lbl_imagen_grafico.config(text="Error al cargar la imagen generada")
+            self.lbl_imagen_grafico_vp.config(text="Error al cargar la imagen generada")
+    
+    # ------------------ GRAFICO INGRESOS ------------------
+    def actualizar_grafico_ingresos(self, periodo):
+        datos = ventasCRUD.reportes.obtener_ingresos_grafico(periodo)
+        if not datos:
+            self.lbl_imagen_grafico_ingresos.config(image="", text="No hay datos de ingresos para este periodo")
+            return
+        
+        self.generar_imagen_grafico_ingresos(datos, periodo)
+
+    def generar_imagen_grafico_ingresos(self, datos, periodo):
+        # datos = [(fecha, total), ...]
+        # Aseguramos que las fechas se procesen bien
+        fechas = [fila[0] for fila in datos]
+        ingresos = [float(fila[1]) for fila in datos]
+
+        fig, ax = plt.subplots(figsize=(10, 4))
+        
+        ax.set_title(f'Ingresos del Negocio ({periodo})', fontsize=14)
+        ax.set_xlabel('Fecha')
+        ax.set_ylabel('Ingresos Totales ($)')
+        
+        # Graficar línea
+        ax.plot(fechas, ingresos, marker='o', linestyle='-', color='green', linewidth=2)
+        
+        # Formatear eje X para fechas
+        fig.autofmt_xdate() # Rota las fechas automáticamente
+
+        fig.tight_layout()
+
+        # Guardado
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        ruta_carpeta = os.path.join(base_dir, "images")
+        
+        if not os.path.exists(ruta_carpeta):
+            os.makedirs(ruta_carpeta)
+            
+        # MODIFICADO: Incluye el periodo en el nombre
+        nombre_archivo = f"grafico_ingresos_{periodo}.png"
+        ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
+        
+        plt.savefig(ruta_completa)
+        plt.close(fig)
+
+        # Carga
+        self.img_grafico_ingresos = obtener_imagen(nombre_archivo, 800, 450)
+        
+        if self.img_grafico_ingresos:
+            self.lbl_imagen_grafico_ingresos.config(image=self.img_grafico_ingresos, text="")
+        else:
+            self.lbl_imagen_grafico_ingresos.config(text="Error al cargar el gráfico de ingresos")
+
     # ------------------------------------
 
     def buscar_venta(self,campo,valor):
@@ -319,7 +399,8 @@ class mainVentas(Frame):
             for row in self.tabla2.get_children():
                 self.tabla2.delete(row)
             self.id_seleccionado = 0
-            self.actualizar_grafico("Semanal") # Actualizar gráfico al eliminar
+            self.actualizar_grafico_vp("Semanal") 
+            self.actualizar_grafico_ingresos("Semanal")
         else:
             messagebox.showerror("Error", "No se pudo eliminar el registro de venta aunque los detalles fueron eliminados.")
 

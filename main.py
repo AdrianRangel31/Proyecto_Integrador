@@ -70,8 +70,9 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         # ==========================================
         # COLUMNA IZQUIERDA: MENÚ
         # ==========================================
-        frame_left = Frame(card, bg=COLOR_BLANCO)
+        frame_left = Frame(card, bg=COLOR_BLANCO,width=450)
         frame_left.grid(row=0, column=0, sticky="nsew", padx=(p_card_x, s(20)), pady=p_card_y)
+        frame_left.pack_propagate(False)
 
         header_frame = Frame(frame_left, bg=COLOR_HEADER_ROJO)
         header_frame.pack(fill=X, pady=(0, s(30)), ipady=p_gap) 
@@ -88,11 +89,10 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         self.lbl_nombre = Label(frame_textos, text="[nombre_usuario]", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_n, anchor="w")
         self.lbl_nombre.pack(fill=X)
 
-        # Botones Navegación
-        botones_nav = ["Ver ventas", "Ver productos", "Ver proveedores", "Ver usuarios"]
-
         frame_nav_top = Frame(frame_left, bg=COLOR_BLANCO)
+        #frame_nav_top.grid_propagate(False)
         frame_nav_top.pack(side=TOP, fill=X)
+
 
 
         btn_ventas = Button(frame_nav_top, text="Ver ventas", 
@@ -136,7 +136,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         area_grafico = Frame(frame_right, bg=COLOR_BLANCO)
         area_grafico.pack(fill=BOTH, expand=True)
 
-        self.img_chart = obtener_imagen("graph.png", w_chart, h_chart)
+        self.img_chart = obtener_imagen("grafico_ingresos_Semanal.png", w_chart, h_chart)
 
         contenedor_img = Frame(area_grafico, bg=COLOR_BLANCO)
         contenedor_img.pack(expand=True) 
@@ -154,10 +154,10 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         # --- SECCIÓN ATAJOS ---
         area_atajos = Frame(frame_right, bg=COLOR_BLANCO)
-        area_atajos.pack(fill=X, pady=(s(20), 0))
+        area_atajos.pack(fill=X, pady=(s(10), 0))
 
         Label(area_atajos, text="Atajos", bg=COLOR_BLANCO, 
-              fg=COLOR_TEXTO_NEGRO, font=f_label_sc).pack(pady=(0, s(10)))
+              fg=COLOR_TEXTO_NEGRO, font=f_label_sc).pack(pady=(0, s(2)))
 
         #self.icon_stats = obtener_imagen("icon_stats.png", w_icon, h_icon)
         #self.icon_refresh = obtener_imagen("icon_refresh.png", w_icon, h_icon)
@@ -170,13 +170,13 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
                          command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
 
         btn_reg.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal) 
-
+        """         
         btn_upd = Button(area_atajos, text="Ver informes de venta",
                          compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                          font=f_btn_sc, relief="flat", cursor="hand2")
 
         btn_upd.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal)
-
+        """
     def actualizar_info_usuario(self, nombre):
         self.lbl_nombre.config(text=nombre)
 
@@ -247,8 +247,6 @@ class App(Tk): #Clase donde va la ventana principal del sistema
                 
                 # 3. Cambiar de pantalla
                 self.mostrar_pantalla("Dashboard")
-            else:
-                print("🔴 Error: El frame 'Dashboard' no fue encontrado en self.frames")
 
     
 
