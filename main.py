@@ -164,11 +164,12 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         btn_reg = Button(area_atajos, text="  Registrar ventas",
                          compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                         font=f_btn_sc, relief="flat", cursor="hand2")
+                         font=f_btn_sc, relief="flat", cursor="hand2",
+                         command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
         
         btn_reg.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal) 
 
-        btn_upd = Button(area_atajos, text="  Actualizar inventario",
+        btn_upd = Button(area_atajos, text="Ver informes de venta",
                          compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                          font=f_btn_sc, relief="flat", cursor="hand2")
                          
@@ -190,8 +191,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["Login"] = Login(self, self)
         self.pantallas["Dashboard"] = Dashboard(self, self)
         self.pantallas["plantilla"] = Plantilla(self,self) #Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
-        self.mostrar_pantalla("Login")
-        
+
         #---------------------------------------------------------------
         #                       PANTALLAS PRODUCTOS
         #---------------------------------------------------------------
@@ -200,6 +200,17 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
         #self.mostrar_pantalla("mainventas")
+
+        #---------------------------------------------------------------
+        #                       PANTALLAS PROVEEDORES
+        #---------------------------------------------------------------
+        self.pantallas["proveedores_main"] = ProveedoresMain(self, self)
+        self.pantallas["proveedores_insertar"] = ProveedoresInsertar(self, self)
+        self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
+        self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
+
+        self.mostrar_pantalla("mainventas")
+        
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         match nombre:

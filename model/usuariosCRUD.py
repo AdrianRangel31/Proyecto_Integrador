@@ -18,5 +18,5 @@ class Usuarios():
             else:
                 return None      
         except Exception as e:
-            print(f"🔴 Error en BD al iniciar sesión: {e}")
+            messagebox.showerror("Error",f"🔴 Error en BD al iniciar sesión: {e}")
             return None
