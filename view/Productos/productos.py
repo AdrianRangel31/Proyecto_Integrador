@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk, messagebox
-from PIL import Image, ImageTk
 import os
 import sys
 
@@ -11,40 +10,37 @@ sys.path.append(ruta_raiz)
 from model.productosCRUD import Productos
 from controller.funciones import obtener_imagen
 
-# --- CONSTANTES DE ESTILO (FUENTES MAS GRANDES) ---
-COLOR_HEADER = "#FF3333"
+# --- IMPORTAR EL HEADER DE TU AMIGO ---
+try:
+    from view.header import header 
+except ImportError:
+    print("⚠️ Error importando header. Asegúrate de que view.plantilla.header exista.")
+    from tkinter import Frame as header 
+
+# --- CONSTANTES DE ESTILO ---
 COLOR_FONDO = "#B71C1C"
 COLOR_BOTON = "#5DADE2"
 COLOR_TEXTO_LBL = "#5DADE2"
 COLOR_BLANCO = "#FFFFFF"
 
-# Tipografía aumentada para mejor lectura
-FONT_TITLE = ("Arial", 24, "bold")       
-FONT_LABEL = ("Arial", 12, "bold")       
-FONT_INPUT = ("Arial", 12)               
-FONT_BTN = ("Arial", 12, "bold")        
-FONT_TABLE = ("Arial", 12)               
+# Fuentes
+FONT_LABEL = ("Arial", 12, "bold")
+FONT_INPUT = ("Arial", 12)
+FONT_BTN = ("Arial", 12, "bold")
+FONT_TABLE = ("Arial", 12)
 
 class EstiloBase(Frame):
+    """
+    Clase padre modificada para usar el Header compartido del equipo.
+    """
     def __init__(self, master, controlador, titulo):
         super().__init__(master)
         self.controlador = controlador
         self.configure(bg=COLOR_FONDO)
         
-        # --- ENCABEZADO ---
-        header = Frame(self, bg=COLOR_HEADER, height=110)
-        header.pack(fill="x", side="top")
-        header.pack_propagate(False)
-
-        self.img_logo_small = obtener_imagen("logo.png", 90, 90)
-        if self.img_logo_small:
-            Label(header, image=self.img_logo_small, bg=COLOR_HEADER).pack(side="left", padx=15, pady=5)
-        
-        Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
-            bd=0, activebackground=COLOR_HEADER, cursor="hand2",
-            command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
-
-        Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
+        self.encabezado = header(self, controlador)
+        self.encabezado.pack(side="top", fill="x")
+        self.encabezado.titulo = titulo
 
 
 # ==========================================================
@@ -63,9 +59,8 @@ class ProductosMain(EstiloBase):
         cols = ("ID", "Nombre", "Desc.", "Cant.", "Unidad", "Precio", "Caducidad", "Prov.")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
-        # --- ESTILOS DE TABLA GRANDES ---
         style = ttk.Style()
-        style.configure("Treeview", font=FONT_TABLE, rowheight=35) # Filas más altas
+        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
         style.configure("Treeview.Heading", font=("Arial", 13, "bold"))
 
         anchos = [50, 200, 200, 80, 80, 100, 120, 80]
@@ -86,9 +81,19 @@ class ProductosMain(EstiloBase):
         Button(frame_botones, text="Eliminar", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=10)
         Button(frame_botones, text="Refrescar", command=self.cargar_datos, **btn_opts).pack(side="right", padx=10)
 
+        # Cargar datos iniciales
+        self.cargar_datos()
+
+        # --- EVENTO MÁGICO PARA ACTUALIZAR ---
+        # El evento <Map> se dispara cuando el widget se hace visible (pack)
+        self.bind("<Map>", self.evento_actualizar_tabla)
+
+    def evento_actualizar_tabla(self, event):
+        """Método que se ejecuta automáticamente al entrar a esta pantalla"""
         self.cargar_datos()
 
     def cargar_datos(self):
+        # Limpiar y recargar
         for item in self.tree.get_children():
             self.tree.delete(item)
         datos = Productos.buscar()
@@ -142,12 +147,12 @@ class ProductosInsertar(EstiloBase):
             ("Nombre del Producto", "nombre"), ("Cantidad", "cantidad"),
             ("Unidad", "unidad"), ("Precio", "precio"),
             ("Descripcion", "desc"), ("Fecha Caducidad (YYYY-MM-DD)", "caducidad"),
-            ("ID Proveedor (Selecciona de la tabla ➜)", "prov") # Indicación visual
+            ("ID Proveedor (Selecciona de la tabla ➜)", "prov")
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
+                  font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
             
             if var_key == "unidad":
                 ent = ttk.Combobox(form_frame, textvariable=self.vars[var_key], values=["kg", "litros", "piezas", "caja"], width=38, font=FONT_INPUT)
@@ -171,16 +176,12 @@ class ProductosInsertar(EstiloBase):
         self.tree_prov.heading("Empresa", text="Nombre Empresa")
         self.tree_prov.column("Empresa", width=200, anchor="w")
         
-        # Scrollbar para proveedores
         scroll_prov = Scrollbar(ayuda_frame, command=self.tree_prov.yview)
         self.tree_prov.configure(yscrollcommand=scroll_prov.set)
         scroll_prov.pack(side="right", fill="y")
         self.tree_prov.pack(expand=True, fill="both")
 
-        # Evento: Al seleccionar un proveedor, llenar el campo ID
         self.tree_prov.bind("<<TreeviewSelect>>", self.seleccionar_proveedor)
-        
-        # Cargar proveedores
         self.cargar_lista_proveedores()
 
         # --- BOTONES ---
@@ -192,21 +193,25 @@ class ProductosInsertar(EstiloBase):
         Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
         Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("productos_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
 
+        # --- EVENTO MÁGICO PARA ACTUALIZAR PROVEEDORES ---
+        # Esto soluciona tu problema: recarga los proveedores cada vez que la pantalla se muestra
+        self.bind("<Map>", self.evento_actualizar_proveedores)
+
+    def evento_actualizar_proveedores(self, event):
+        """Se ejecuta al mostrar la pantalla de insertar/actualizar"""
+        self.cargar_lista_proveedores()
+
     def cargar_lista_proveedores(self):
-        """Llena la tabla de la derecha"""
         for item in self.tree_prov.get_children():
             self.tree_prov.delete(item)
-        # Llamada al método nuevo del modelo
         datos = Productos.obtener_lista_proveedores()
         for row in datos:
             self.tree_prov.insert("", "end", values=row)
 
     def seleccionar_proveedor(self, event):
-        """Toma el ID del proveedor seleccionado y lo pone en el Entry"""
         seleccion = self.tree_prov.focus()
         if seleccion:
             valores = self.tree_prov.item(seleccion, "values")
-            # valores[0] es el ID
             self.vars["prov"].set(valores[0])
 
     def limpiar(self):
@@ -219,7 +224,7 @@ class ProductosInsertar(EstiloBase):
         prec = self.vars["precio"].get() if str(self.vars["precio"].get()) else 0.0
         
         datos = [self.vars["nombre"].get(), self.vars["desc"].get(), cant,
-                self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
+                 self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
         
         if self.modo == "insertar":
             if Productos.insertar(*datos):
@@ -233,6 +238,9 @@ class ProductosInsertar(EstiloBase):
                 self.controlador.pantallas["productos_main"].cargar_datos()
 
 
+# ==========================================================
+# PANTALLA 3: ACTUALIZAR
+# ==========================================================
 class ProductosActualizar(ProductosInsertar):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, modo="actualizar")
@@ -246,10 +254,12 @@ class ProductosActualizar(ProductosInsertar):
         self.vars["precio"].set(valores[5])
         self.vars["caducidad"].set(valores[6])
         self.vars["prov"].set(valores[7])
-        # Recargar proveedores por si hubo cambios
         self.cargar_lista_proveedores()
 
 
+# ==========================================================
+# PANTALLA 4: ELIMINAR
+# ==========================================================
 class ProductosEliminar(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "ELIMINAR PRODUCTO")
@@ -259,7 +269,7 @@ class ProductosEliminar(EstiloBase):
         cuerpo.pack(expand=True, fill="both", padx=50, pady=50)
 
         Label(cuerpo, text="¿Estás seguro que deseas eliminar este producto?", 
-            bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
+              bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
 
         self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 16), padx=20, pady=20)
         self.lbl_info.pack(pady=10, fill="x")
@@ -268,10 +278,10 @@ class ProductosEliminar(EstiloBase):
         btn_frame.pack(pady=40)
 
         Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=FONT_BTN,
-            command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
+               command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
         
         Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=FONT_BTN,
-            command=lambda: controlador.mostrar_pantalla("productos_main"), cursor="hand2").pack(side="left", padx=20)
+               command=lambda: controlador.mostrar_pantalla("productos_main"), cursor="hand2").pack(side="left", padx=20)
 
     def cargar_datos_vista(self, valores):
         self.id_a_eliminar = valores[0]
