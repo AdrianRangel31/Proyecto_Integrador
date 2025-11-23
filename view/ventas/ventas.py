@@ -238,9 +238,6 @@ class mainVentas(Frame):
             messagebox.showerror("Error", "No se pudo eliminar el registro de venta aunque los detalles fueron eliminados.")
 
     def ver_detalles(self):
-        if self.id_seleccionado == 0:
-            messagebox.showinfo("Aviso", "Seleccione un registro para continuar.")
-            return
         registros = ventasCRUD.detalleVenta.buscar(self.id_seleccionado)
         for row in self.tabla2.get_children():
             self.tabla2.delete(row)
