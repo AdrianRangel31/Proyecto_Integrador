@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from tkcalendar import DateEntry
 from view.header import *
 from model import ventasCRUD
 
@@ -316,6 +315,7 @@ class insertarVentas(Frame):
         self.spinbox_prod = []
 
         for i in range(len(self.opciones_prod)):
+            # validation uses index closure - create function that captures i
             def make_vcmd(idx):
                 return (self.register(lambda val, idx=idx: self.validar_spin(val, idx)), "%P")
             vcmd = make_vcmd(i)
@@ -333,7 +333,7 @@ class insertarVentas(Frame):
                 highlightcolor="black",
                 command=lambda idx=i: self.spin_cambio(idx, self.spinbox_prod[idx].get()),
                 validate="key",
-                validatecommand=lambda:vcmd
+                validatecommand=vcmd
             )
             self.spinbox_prod.append(spin)
             spin.grid(row=i+1, column=1, sticky="nsew")
@@ -362,47 +362,6 @@ class insertarVentas(Frame):
         self.total_venta = 0
         btn_volver = Button(frame_total,text="Volver",width=20,font=("Arial",20),command=lambda:self.controlador.mostrar_pantalla("mainventas"),bg="#669BBC",fg="white")
         btn_volver.pack(pady=5)
-
-        #Fecha
-        f = len(self.opciones_prod)+1 #Filas actuales del grid en frame_prod
-        self.fecha = DateEntry(
-                 frame_prod,
-                 date_pattern="dd/mm/yyyy",
-                 locale="es_MX",
-                 font=("Arial", 20),
-                 width=12
-                )
-        self.fecha.grid(row=f+1,column=1,pady=5)
-        lbl_fecha = Label(frame_prod,text="Fecha: ",font=("Arial", 20),bg=COLOR_FRAME,fg="white")
-        lbl_fecha.grid(row=f+1,column=0,pady=5,sticky="e")
-
-        lbl_hora = Label(frame_prod,text="Hora: ",font=("Arial", 20),bg=COLOR_FRAME,fg="white")
-        lbl_hora.grid(row=f+2,column=0,pady=5,sticky="e")
-
-
-        frame_hora = Frame(frame_prod,bg=COLOR_FRAME)
-        frame_hora.grid(row=f+2,column=1,sticky="nsew")
-        self.spin_hora = Spinbox(
-            frame_hora,
-            from_=19, to=23,
-            font=("Arial", 20),
-            width=3
-        )
-        minutos = [f"{i:02d}" for i in range(60)]
-        self.spin_minuto = Spinbox(
-            frame_hora,
-            values=minutos,
-            font=("Arial", 20),
-            width=3
-        )
-
-        self.spin_hora.grid(row=0,column=0)
-        lbl_min = Label(frame_hora,text=":",font=("Arial", 30,"bold"),bg=COLOR_FRAME,fg="white")
-        lbl_min.grid(row=0,column=1,pady=5,sticky="e")
-        self.spin_minuto.grid(row=0,column=2)
-
-
-
         match accion:
             case "agregar":
                 head.titulo = "Registrar venta"
@@ -417,7 +376,7 @@ class insertarVentas(Frame):
                 frame_tablas = Frame(body,bg="white",height=260)
                 frame_tablas.pack_propagate(False)
                 frame_tablas.grid(row=0,column=0,sticky="nsew",pady=(20,0),padx=10,columnspan=2)
-                columnas_ventas = ["ID", "Fecha","Hora", "Total"]
+                columnas_ventas = ["ID", "Fecha", "Total"]
                 frame_tablaventas = Frame(frame_tablas,height=80)
                 frame_tablaventas.pack_propagate(False)
                 frame_tablaventas.pack(fill="x")
@@ -448,17 +407,7 @@ class insertarVentas(Frame):
                 if not isinstance(self.cantidades, list) or len(self.cantidades) != len(self.opciones_prod):
                     # fallback: crear lista de ceros con la longitud de opciones_prod
                     self.cantidades = [0]*len(self.opciones_prod)
-                registros = ventasCRUD.ventas.obtener_hora(self.id_seleccionado)
 
-                fecha = registros[0][0]
-                self.fecha.set_date(fecha)
-                hora = registros[0][1]
-                hora = hora.split(":")
-                self.spin_hora.delete(0,"end")
-                self.spin_minuto.delete(0,"end")
-                self.spin_hora.insert(0,hora[0])
-                self.spin_minuto.insert(0,hora[1])
-            
                 i=0
                 for cantidad in self.cantidades:
                     self.spinbox_prod[i].delete(0, "end")
@@ -497,22 +446,11 @@ class insertarVentas(Frame):
             return True
         return False
 
-    def limpiar(self):
-        for i in range(len(self.spinbox_prod)):
-            self.spinbox_prod[i].delete(0, "end")
-            self.spinbox_prod[i].insert(0, "0")
-        self.spin_hora.delete(0, "end")
-        self.spin_hora.insert(0, "19")
-        self.spin_minuto.delete(0, "end")
-        self.spin_minuto.insert(0, "00")
-
     def crearVenta(self):
         if self.total_venta == 0:
             messagebox.showwarning("Advertencia","Ingrese productos para continuar")
             return
-        fecha = self.fecha.get_date()
-        hora = f"{self.spin_hora.get()}:{"00" if self.spin_minuto.get() == "0" else self.spin_minuto.get()}"
-        insertar,id = ventasCRUD.ventas.insertar(self.total_venta,fecha,hora)
+        insertar,id = ventasCRUD.ventas.insertar(self.total_venta)
         if not insertar:
             messagebox.showerror("Error","No se pudo insertar la venta.")
             return
@@ -525,10 +463,9 @@ class insertarVentas(Frame):
                     insertar_detalle_ok = False
         if insertar and insertar_detalle_ok:
             messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
-            self.limpiar()
+            self.controlador.mostrar_pantalla("mainventas")
         else:
             messagebox.showerror("Error", "Ocurrió un error al guardar los detalles de la venta.")
-            
 
     def actualizarVenta(self):
         # toma las cantidades previas (self.cantidades) y las nuevas de los spinboxes
@@ -605,9 +542,8 @@ class insertarVentas(Frame):
                 nuevo_total += float(d[4])
             except:
                 pass
-        fecha = self.fecha.get_date()
-        hora = f"{self.spin_hora.get()}:{"00" if self.spin_minuto.get() == "0" else self.spin_minuto.get()}"
-        ok_total = ventasCRUD.ventas.actualizar_total(self.id_seleccionado, nuevo_total,fecha,hora)
+
+        ok_total = ventasCRUD.ventas.actualizar_total(self.id_seleccionado, nuevo_total)
         if any_error or not ok_total:
             messagebox.showerror("Error", "Ocurrieron errores al actualizar la venta. Revise la consola o la base de datos.")
         else:

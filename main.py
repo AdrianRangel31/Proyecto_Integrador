@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from view.plantilla.plantilla_interfaz import *
 from view.usuarios.usuario import *
+from view.usuarios.usuarios_interfaz import UsuariosMain, UsuariosInsertar
 from controller.funciones import *
 from view.ventas.ventas import *
 from tkinter import messagebox
@@ -112,9 +113,9 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         btn_prov.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
         btn_usuarios = Button(frame_nav_top, text="Ver usuarios", 
-                     bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                     font=f_btn_nav, relief="flat", cursor="hand2",
-                     command=lambda: "")
+             bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+             font=f_btn_nav, relief="flat", cursor="hand2",
+             command=lambda: self.controlador.mostrar_pantalla("usuarios_main")) # <--- CAMBIO AQUÍ
         btn_usuarios.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
         # Botón Cerrar Sesión
@@ -164,12 +165,11 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         btn_reg = Button(area_atajos, text="  Registrar ventas",
                          compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                         font=f_btn_sc, relief="flat", cursor="hand2",
-                         command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
+                         font=f_btn_sc, relief="flat", cursor="hand2")
         
         btn_reg.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal) 
 
-        btn_upd = Button(area_atajos, text="Ver informes de venta",
+        btn_upd = Button(area_atajos, text="  Actualizar inventario",
                          compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                          font=f_btn_sc, relief="flat", cursor="hand2")
                          
@@ -190,8 +190,11 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = Login(self, self)
         self.pantallas["Dashboard"] = Dashboard(self, self)
+        self.pantallas["usuarios_main"] = UsuariosMain(self, self)
+        self.pantallas["usuarios_insertar"] = UsuariosInsertar(self, self)
         self.pantallas["plantilla"] = Plantilla(self,self) #Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
-
+        self.mostrar_pantalla("Login")
+        
         #---------------------------------------------------------------
         #                       PANTALLAS PRODUCTOS
         #---------------------------------------------------------------
@@ -200,17 +203,6 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
         #self.mostrar_pantalla("mainventas")
-
-        #---------------------------------------------------------------
-        #                       PANTALLAS PROVEEDORES
-        #---------------------------------------------------------------
-        self.pantallas["proveedores_main"] = ProveedoresMain(self, self)
-        self.pantallas["proveedores_insertar"] = ProveedoresInsertar(self, self)
-        self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
-        self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
-
-        self.mostrar_pantalla("Login")
-        
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
         match nombre:

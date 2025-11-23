@@ -30,13 +30,13 @@ class ventas:
             return []
 
     @staticmethod
-    def insertar(total,fecha,hora):
+    def insertar(total):
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return False,0
         try:
-            cursor.execute(f"insert into ventas values(NULL,'{fecha}','{hora}',{total})")
+            cursor.execute(f"insert into ventas values(NULL,NOW(),%s)", (total,))
             conexion.commit()
             return True, cursor.lastrowid
         except Exception as e:
@@ -70,19 +70,6 @@ class ventas:
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo actualizar el total de la venta: {e}")
             return False
-        
-    @staticmethod
-    def obtener_hora(id):
-        cursor, conexion = conectarBD()
-        if cursor == None:
-            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-            return []
-        try:
-            cursor.execute(f"select fecha_venta,hora_venta from ventas where id_venta = {id}")
-            return cursor.fetchall()
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al buscar ventas: {e}")
-            return []
 
 class detalleVenta:
     @staticmethod
