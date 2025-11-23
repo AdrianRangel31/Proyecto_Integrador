@@ -47,7 +47,6 @@ class Usuarios:
         try:
             # Encriptamos la contraseña antes de guardarla
             pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
-            
             sql = "INSERT INTO usuarios (nombre, apellidos, correo, password) VALUES (%s, %s, %s, %s)"
             val = (nombre, apellidos, correo, pass_encrypt)
             
