@@ -4,7 +4,7 @@ from tkinter import messagebox
 class ventas:
     @staticmethod
     def buscar(campo,valor=None):
-        cambio = {"ID":"id_venta","Fecha":"fecha_venta","Total":"total"}
+        cambio = {"ID":"id_venta","Fecha":"fecha_venta","Total":"total_venta"}
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
@@ -15,13 +15,13 @@ class ventas:
             else:
                 match valor:
                     case "Más recientes":
-                        cursor.execute(f"select * from ventas order by fecha_venta desc")
+                        cursor.execute(f"select * from ventas order by fecha_venta desc, hora_venta desc")
                     case "Más antiguos":
-                        cursor.execute(f"select * from ventas order by fecha_venta asc")
+                        cursor.execute(f"select * from ventas order by fecha_venta asc, hora_venta asc")
                     case "Más bajo":
-                        cursor.execute(f"select * from ventas order by total asc")  
+                        cursor.execute(f"select * from ventas order by total_venta asc")  
                     case "Más alto":
-                        cursor.execute(f"select * from ventas order by total desc")       
+                        cursor.execute(f"select * from ventas order by total_venta desc")       
                     case _:
                         cursor.execute(f"select * from ventas where {cambio[campo]} = %s", (valor,))
             return cursor.fetchall()
@@ -30,13 +30,13 @@ class ventas:
             return []
 
     @staticmethod
-    def insertar(total):
+    def insertar(total,fecha,hora):
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return False,0
         try:
-            cursor.execute(f"insert into ventas values(NULL,NOW(),%s)", (total,))
+            cursor.execute(f"insert into ventas values(NULL,'{fecha}','{hora}',{total})")
             conexion.commit()
             return True, cursor.lastrowid
         except Exception as e:
@@ -58,18 +58,31 @@ class ventas:
             return False
 
     @staticmethod
-    def actualizar_total(id_venta, total):
+    def actualizar_total(id_venta, total,fecha,hora):
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return False
         try:
-            cursor.execute("update ventas set total = %s where id_venta = %s", (total, id_venta))
+            cursor.execute("update ventas set total_venta = %s,fecha_venta = %s, hora_venta = %s where id_venta = %s", (total,fecha,hora, id_venta))
             conexion.commit()
             return True
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo actualizar el total de la venta: {e}")
             return False
+        
+    @staticmethod
+    def obtener_hora(id):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            return []
+        try:
+            cursor.execute(f"select fecha_venta,hora_venta from ventas where id_venta = {id}")
+            return cursor.fetchall()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al buscar ventas: {e}")
+            return []
 
 class detalleVenta:
     @staticmethod
