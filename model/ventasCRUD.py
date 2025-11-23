@@ -245,3 +245,39 @@ class menu:
         except Exception as e:
             messagebox.showerror("Error", f"No se pudieron obtener productos: {e}")
             return []
+
+class reportes:
+    @staticmethod
+    def obtener_datos_grafico(periodo):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            return []
+        
+        # Definir el intervalo de tiempo en SQL
+        intervalo = ""
+        match periodo:
+            case "Semanal":
+                intervalo = "INTERVAL 1 WEEK"
+            case "Mensual":
+                intervalo = "INTERVAL 1 MONTH"
+            case "Trimestral":
+                intervalo = "INTERVAL 3 MONTH"
+            case _:
+                intervalo = "INTERVAL 1 WEEK" # Default
+
+        # Consulta: Unimos ventas con detalle_venta y menu para obtener nombres y sumas
+        query = f"""
+            SELECT m.nombre, SUM(dv.cantidad) as total_cantidad, SUM(dv.subtotal) as total_dinero
+            FROM detalle_venta dv
+            JOIN ventas v ON dv.id_venta = v.id_venta
+            JOIN menu m ON dv.id_menu = m.id_menu
+            WHERE v.fecha_venta >= DATE_SUB(CURDATE(), {intervalo})
+            GROUP BY m.nombre
+            ORDER BY total_cantidad DESC
+        """
+        try:
+            cursor.execute(query)
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error en reporte: {e}")
+            return []
