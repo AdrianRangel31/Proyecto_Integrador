@@ -106,6 +106,11 @@ class Login(Frame):
     def verificar(self,correo,password):
         registro = Usuarios.iniciar_sesion(correo,password)
         if registro:
-            self.controlador.mostrar_pantalla("Dashboard")
+            username = registro[1]
+
+            self.entry_correo.delete(0, END)
+            self.entry_pass.delete(0, END)
+
+            self.controlador.ingresar(username)
         else:
             messagebox.showerror("Error","Usuario o contraseña incorrectos")

@@ -85,7 +85,8 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         frame_textos = Frame(header_content, bg=COLOR_HEADER_ROJO)
         frame_textos.pack(side=LEFT)
         Label(frame_textos, text="Welcome", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_t, anchor="w").pack(fill=X)
-        Label(frame_textos, text="[nombre_usuario]", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_n, anchor="w").pack(fill=X)
+        self.lbl_nombre = Label(frame_textos, text="[nombre_usuario]", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_n, anchor="w")
+        self.lbl_nombre.pack(fill=X)
 
         # Botones Navegación
         botones_nav = ["Ver ventas", "Ver productos", "Ver proveedores", "Ver usuarios"]
@@ -176,6 +177,10 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         btn_upd.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal)
 
+    def actualizar_info_usuario(self, nombre):
+        self.lbl_nombre.config(text=nombre)
+
+
 class App(Tk): #Clase donde va la ventana principal del sistema
     def __init__(self):
         super().__init__()
@@ -231,6 +236,21 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             pantalla.pack_forget()
         self.pantallas[nombre].pack(expand=True, fill="both")
 
+    def ingresar(self, nombre_usuario):
+        # 1. Obtener la referencia al frame del Dashboard
+        # Asegúrate que la "key" ("Dashboard") sea exactamente como la definiste al crear los frames
+            if "Dashboard" in self.pantallas:
+                dashboard = self.pantallas["Dashboard"]
+                
+                # 2. Mandar el nombre al Dashboard
+                dashboard.actualizar_info_usuario(nombre_usuario)
+                
+                # 3. Cambiar de pantalla
+                self.mostrar_pantalla("Dashboard")
+            else:
+                print("🔴 Error: El frame 'Dashboard' no fue encontrado en self.frames")
+
+    
 
 if __name__ == "__main__":
     app = App()
