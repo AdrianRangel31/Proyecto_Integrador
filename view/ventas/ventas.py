@@ -15,7 +15,7 @@ class mainVentas(Frame):
         head.pack(fill="x")
         head.titulo = "Ventas"
 
-        # --- SCROLLABLE BODY (vertical only) para mainVentas ---
+        # --- SCROLLABLE BODY (Lógica Corregida) ---
         container = Frame(self)
         container.pack(fill="both", expand=True)
 
@@ -26,39 +26,68 @@ class mainVentas(Frame):
         vsb.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
 
-        body = Frame(canvas, bg="#ffffff")  # 'body' con el mismo nombre que usa el resto del código
+        body = Frame(canvas, bg="#ffffff")
         window_id = canvas.create_window((0, 0), window=body, anchor="nw")
 
-        # cuando el contenido del body cambie, actualiza el scrollregion
         def _on_body_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
+
         body.bind("<Configure>", _on_body_configure)
 
-        # cuando cambie el tamaño del canvas, ajusta el width del window y asegúrate
-        # de que la altura del window sea al menos la requerida por el contenido
         def _on_canvas_configure(event):
-            req_h = body.winfo_reqheight()
-            # width = ancho del canvas; height = mayor entre altura visible y altura requerida
-            canvas.itemconfig(window_id, width=event.width, height=max(event.height, req_h))
-            canvas.configure(scrollregion=canvas.bbox("all"))
-        canvas.bind("<Configure>", _on_canvas_configure)
-        # --- fin scrollable para mainVentas ---
+            canvas.itemconfig(window_id, width=event.width)
+            if event.height > 1:
+                body.rowconfigure(0, minsize=event.height)
 
+        canvas.bind("<Configure>", _on_canvas_configure)
+
+        # --- Scroll con Mouse/Touchpad ---
+        def _on_mousewheel(event):
+            if event.delta:
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        def _on_linux_scroll_up(event):
+            canvas.yview_scroll(-1, "units")
+
+        def _on_linux_scroll_down(event):
+            canvas.yview_scroll(1, "units")
+
+        def _bind_mouse(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            canvas.bind_all("<Button-4>", _on_linux_scroll_up)
+            canvas.bind_all("<Button-5>", _on_linux_scroll_down)
+
+        def _unbind_mouse(event):
+            canvas.unbind_all("<MouseWheel>")
+            canvas.unbind_all("<Button-4>")
+            canvas.unbind_all("<Button-5>")
+
+        container.bind("<Enter>", _bind_mouse)
+        container.bind("<Leave>", _unbind_mouse)
+        self.bind("<Destroy>", _unbind_mouse)
+        # --- fin scrollable ---
 
         self.id_seleccionado = 0
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
-        body.rowconfigure(0, weight=1)
 
         frameVENTA = Frame(body, bg=COLOR_FRAME)
         frameVENTA.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         frameVENTA.pack_propagate(False)
+        
         frameDETALLES = Frame(body, bg=COLOR_FRAME)
         frameDETALLES.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         frameDETALLES.pack_propagate(False)
 
-        #FRAME VENTA
-        # FRAME FILTRAR
+        frameREPORTES = Frame(body, bg=COLOR_FRAME, height=400)
+        frameREPORTES.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=20)
+        frameREPORTES.pack_propagate(False)
+        
+        lbl_reportes = Label(frameREPORTES, text="REPORTES DE VENTA", 
+                             font=("Arial", 22), bg=COLOR_FRAME, fg="white")
+        lbl_reportes.pack(pady=20)
+
+        #FRAME VENTA - FILTRAR
         frame_filtrar = Frame(frameVENTA, bg=COLOR_FRAME)
         frame_filtrar.pack(pady=20)
 
@@ -72,46 +101,22 @@ class mainVentas(Frame):
 
         columnas = ["Todo","ID", "Fecha", "Total"]
 
-        # ---------------------------- ESTILOS -------------------------------
+        # ESTILOS
         style = ttk.Style()
         style.theme_use("clam")
-
-        # Estilo personalizado SOLO para Treeview
-        style.configure("Custom.Treeview",
-                        font=("Arial", 16),
-                        rowheight=35)
-        
-        style.configure("Custom.Treeview.Heading",
-                        background="#4A90E2",
-                        foreground="white",
-                        font=("Arial", 18, "bold"),
-                        relief="flat")
-        
-        style.map("Custom.Treeview.Heading",
-                  background=[("active", "#357ABD")])
-
-        # Estilo para ComboBox
-        style.configure("Custom.TCombobox",
-                        fieldbackground="#4A90E2",
-                        background="#4A90E2",
-                        foreground="black",
-                        bordercolor="#4A90E2",
-                        lightcolor="#4A90E2",
-                        arrowcolor="white",
-                        font=("Arial", 22))
-
-        style.map("Custom.TCombobox",
-                  fieldbackground=[("readonly", "#4A90E2")],
-                  foreground=[("readonly", "white")],
-                  selectbackground=[("readonly", "#4A90E2")],
+        style.configure("Custom.Treeview", font=("Arial", 16), rowheight=35)
+        style.configure("Custom.Treeview.Heading", background="#4A90E2", foreground="white",
+                        font=("Arial", 18, "bold"), relief="flat")
+        style.map("Custom.Treeview.Heading", background=[("active", "#357ABD")])
+        style.configure("Custom.TCombobox", fieldbackground="#4A90E2", background="#4A90E2",
+                        foreground="black", bordercolor="#4A90E2", lightcolor="#4A90E2",
+                        arrowcolor="white", font=("Arial", 22))
+        style.map("Custom.TCombobox", fieldbackground=[("readonly", "#4A90E2")],
+                  foreground=[("readonly", "white")], selectbackground=[("readonly", "#4A90E2")],
                   selectforeground=[("readonly", "white")])
-        # -------------------------------------------------------------------
 
-        # COMBOBOX con estilo aplicado
-        combo_campo = ttk.Combobox(frame_filtrar,
-                             values=columnas,
-                             state="readonly",
-                             style="Custom.TCombobox")
+        # COMBOBOX
+        combo_campo = ttk.Combobox(frame_filtrar, values=columnas, state="readonly", style="Custom.TCombobox")
         combo_campo.configure(font=("Arial", 22),width=10)
         combo_campo.current(0)
         combo_campo.grid(row=0, column=1, sticky="nsew")
@@ -127,68 +132,64 @@ class mainVentas(Frame):
             combo_valor.set("")
         combo_campo.bind("<<ComboboxSelected>>", campo_seleccionado)
 
-
         filtros_fecha = ["Más recientes","Más antiguos"]
         filtros_precio = ["Más alto","Más bajo"]
-        combo_valor = ttk.Combobox(frame_filtrar,
-                             values=[],
-                             style="Custom.TCombobox")
+        combo_valor = ttk.Combobox(frame_filtrar, values=[], style="Custom.TCombobox")
         combo_valor.configure(font=("Arial", 22),width=10)
         combo_valor.grid(row=0, column=2, sticky="nsew")
         
-        btn_buscar = Button(frame_filtrar, text="Buscar",
-                            font=("Arial", 13, "bold"),
+        btn_buscar = Button(frame_filtrar, text="Buscar", font=("Arial", 13, "bold"),
                             command=lambda: self.buscar_venta(combo_campo.get(),combo_valor.get()))
         btn_buscar.grid(row=0, column=3, sticky="nsew")
 
-        # --------------------------- TABLA VENTAS --------------------------------
+        # TABLA VENTAS
         columnas_ventas = ["ID", "Fecha","Hora", "Total"]
         frame_tablaventas = Frame(frameVENTA,height=200)
         frame_tablaventas.pack(fill="x")
         self.tabla = tabla(
             frame_tablaventas,
             columnas_ventas,
-            callback_seleccion=self.actualizar_id  # ← recibe el ID seleccionado
+            callback_seleccion=self.actualizar_id
         )
+
+        # Fix: Desactivar scroll global SOLO en la tabla de ventas
+        self.tabla.bind("<Enter>", _unbind_mouse)
+        self.tabla.bind("<Leave>", _bind_mouse)
+
         def seleccionar_fila(event):
-            fila = self.tabla.selection()  # Obtiene ID(s) de las filas seleccionadas
+            fila = self.tabla.selection()
             if fila:
                 valores = self.tabla.item(fila[0], "values")
                 self.id_seleccionado = valores[0]
             self.ver_detalles()
         self.tabla.bind("<<TreeviewSelect>>", seleccionar_fila)
-        # -------------------------------------------------------------------
 
         frame_botones = Frame(frameVENTA, bg=COLOR_FRAME)
         frame_botones.pack_propagate(False)
         frame_botones.pack(padx=20, pady=10)
 
-        btn_añadir = Button(frame_botones, text="Añadir",
-                            font=("Arial", 16, "bold"), width=15,
+        btn_añadir = Button(frame_botones, text="Añadir", font=("Arial", 16, "bold"), width=15,
                             fg="white", bg="#86B7D6",
                             command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
         btn_añadir.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        btn_actualizar = Button(frame_botones, text="Actualizar",
-                                font=("Arial", 16, "bold"), width=15,
+        btn_actualizar = Button(frame_botones, text="Actualizar", font=("Arial", 16, "bold"), width=15,
                                 fg="white", bg="#86B7D6",
                                 command=lambda: self.controlador.mostrar_pantalla("actualizarventas",self.id_seleccionado))
         btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
-        btn_eliminar = Button(frame_botones, text="Eliminar",
-                              font=("Arial", 16, "bold"), width=15,
+        btn_eliminar = Button(frame_botones, text="Eliminar", font=("Arial", 16, "bold"), width=15,
                               fg="white", bg="#86B7D6",
                               command=lambda: self.eliminar_venta())
         btn_eliminar.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
 
         self.buscar_venta("Todo","")
 
-        #FRAME DETALLES
+        # FRAME DETALLES
         lbl_titulo = Label(frameDETALLES,text="Detalles de venta",font=("Arial", 22),
                             bg=COLOR_FRAME, fg="white")
         lbl_titulo.pack(pady=20)
 
-        # --------------------------- TABLA  DETALLES--------------------------------
         columnas_detalles = ["ID", "ID_venta", "Producto","Cantidad","Subtotal"]
         frame_tabladetalles = Frame(frameDETALLES,height=200)
         frame_tabladetalles.pack(fill="x")
@@ -198,6 +199,13 @@ class mainVentas(Frame):
             columnas_detalles,
             anchos=[5,15,120,20,30]
         )
+        
+        # --- NUEVO: Ocultar Scrollbar de Detalles ---
+        # Buscamos el widget Scrollbar dentro del frame y lo ocultamos
+        for child in frame_tabladetalles.winfo_children():
+            if isinstance(child, ttk.Scrollbar):
+                child.pack_forget() # Ocultar
+        # --------------------------------------------
 
     def buscar_venta(self,campo,valor):
         registros = ventasCRUD.ventas.buscar(campo,valor)
@@ -214,18 +222,15 @@ class mainVentas(Frame):
         if not confirmar:
             return
 
-        # Primero eliminar detalles
         ok_det = ventasCRUD.detalleVenta.eliminar_por_venta(self.id_seleccionado)
         if not ok_det:
             messagebox.showerror("Error", "No se pudieron eliminar los detalles de la venta. Operación cancelada.")
             return
 
-        # Luego eliminar la venta
         ok_venta = ventasCRUD.ventas.eliminar(self.id_seleccionado)
         if ok_venta:
             messagebox.showinfo("Exito", f"El registro con ID = {self.id_seleccionado} y todos sus detalles se eliminaron exitosamente")
             self.buscar_venta("Todo","")
-            # limpiar tabla detalles
             for row in self.tabla2.get_children():
                 self.tabla2.delete(row)
             self.id_seleccionado = 0
@@ -244,7 +249,7 @@ class mainVentas(Frame):
 
     def actualizar_id(self, id_recibido):
         self.id_seleccionado = id_recibido
-        print("ID seleccionado:", id_recibido)
+
 
 class insertarVentas(Frame):
     def __init__(self, master, controlador,accion,id_seleccionado=None):
