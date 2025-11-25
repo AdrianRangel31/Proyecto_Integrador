@@ -19,7 +19,7 @@ class mainVentas(Frame):
         head.pack(fill="x")
         head.titulo = "Ventas"
 
-        # --- SCROLLABLE BODY (Lógica Corregida) ---
+        # --- SCROLLABLE BODY ---
         container = Frame(self)
         container.pack(fill="both", expand=True)
 
@@ -45,7 +45,7 @@ class mainVentas(Frame):
 
         canvas.bind("<Configure>", _on_canvas_configure)
 
-        # --- Scroll con Mouse/Touchpad ---
+        # --- Scroll Logic ---
         def _on_mousewheel(event):
             if event.delta:
                 canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -69,31 +69,39 @@ class mainVentas(Frame):
         container.bind("<Enter>", _bind_mouse)
         container.bind("<Leave>", _unbind_mouse)
         self.bind("<Destroy>", _unbind_mouse)
-        # --- fin scrollable ---
+        # -------------------
 
         self.id_seleccionado = 0
-        body.columnconfigure(0, weight=1)
-        body.columnconfigure(1, weight=1)
+        
+        # --- CORRECCIÓN RESPONSIVE ---
+        # 'uniform="cols"' fuerza a que ambas columnas tengan el mismo ancho pixel a pixel
+        body.columnconfigure(0, weight=1, uniform="cols")
+        body.columnconfigure(1, weight=1, uniform="cols")
 
-        frameVENTA = Frame(body, bg=COLOR_FRAME)
-        frameVENTA.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        frameVENTA.pack_propagate(False)
+        # Hacemos frameVENTA accesible mediante self para el evento resize
+        self.frameVENTA = Frame(body, bg=COLOR_FRAME)
+        self.frameVENTA.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        # Importante: Sin pack_propagate(False) para que crezca si los botones bajan
+        # self.frameVENTA.pack_propagate(False) 
         
         frameDETALLES = Frame(body, bg=COLOR_FRAME)
         frameDETALLES.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
-        frameDETALLES.pack_propagate(False)
+        # También quitamos la propagación fija aquí por consistencia, aunque opcional
+        # frameDETALLES.pack_propagate(False) 
 
-        #FRAME VENTA - FILTRAR
-        frame_filtrar = Frame(frameVENTA, bg=COLOR_FRAME)
-        frame_filtrar.pack(pady=20)
+        # --- FRAME VENTA - FILTRAR ---
+        self.frame_filtrar = Frame(self.frameVENTA, bg=COLOR_FRAME)
+        self.frame_filtrar.pack(pady=20)
 
+        # Configuración de pesos para centrado/distribución
         for i in range(4):
-            frame_filtrar.columnconfigure(i, weight=0)
-        frame_filtrar.rowconfigure(0, weight=0)
+            self.frame_filtrar.columnconfigure(i, weight=1)
         
-        lbl_filtrar = Label(frame_filtrar, text="Filtrar por:", font=("Arial", 22),
+        # Convertimos widgets a self para moverlos dinámicamente
+        self.lbl_filtrar = Label(self.frame_filtrar, text="Filtrar por:", font=("Arial", 22),
                             bg=COLOR_FRAME, fg="white")
-        lbl_filtrar.grid(row=0, column=0, sticky="w")
+        # Posicion inicial (se ajustará en responsive_layout)
+        self.lbl_filtrar.grid(row=0, column=0, sticky="w")
 
         columnas = ["Todo","ID", "Fecha", "Total"]
 
@@ -112,35 +120,36 @@ class mainVentas(Frame):
                   selectforeground=[("readonly", "white")])
 
         # COMBOBOX
-        combo_campo = ttk.Combobox(frame_filtrar, values=columnas, state="readonly", style="Custom.TCombobox")
-        combo_campo.configure(font=("Arial", 22),width=10)
-        combo_campo.current(0)
-        combo_campo.grid(row=0, column=1, sticky="nsew")
+        self.combo_campo = ttk.Combobox(self.frame_filtrar, values=columnas, state="readonly", style="Custom.TCombobox")
+        self.combo_campo.configure(font=("Arial", 22),width=10)
+        self.combo_campo.current(0)
+        self.combo_campo.grid(row=0, column=1, sticky="nsew", padx=5)
+        
         def campo_seleccionado(event):
-            valor = combo_campo.get()
+            valor = self.combo_campo.get()
             match valor:
                 case "Fecha":
-                    combo_valor.config(values=filtros_fecha)
+                    self.combo_valor.config(values=filtros_fecha)
                 case "Total":
-                    combo_valor.config(values=filtros_precio)
+                    self.combo_valor.config(values=filtros_precio)
                 case _:
-                    combo_valor.config(values=[])
-            combo_valor.set("")
-        combo_campo.bind("<<ComboboxSelected>>", campo_seleccionado)
+                    self.combo_valor.config(values=[])
+            self.combo_valor.set("")
+        self.combo_campo.bind("<<ComboboxSelected>>", campo_seleccionado)
 
         filtros_fecha = ["Más recientes","Más antiguos"]
         filtros_precio = ["Más alto","Más bajo"]
-        combo_valor = ttk.Combobox(frame_filtrar, values=[], style="Custom.TCombobox")
-        combo_valor.configure(font=("Arial", 22),width=10)
-        combo_valor.grid(row=0, column=2, sticky="nsew")
+        self.combo_valor = ttk.Combobox(self.frame_filtrar, values=[], style="Custom.TCombobox")
+        self.combo_valor.configure(font=("Arial", 22),width=10)
+        self.combo_valor.grid(row=0, column=2, sticky="nsew", padx=5)
         
-        btn_buscar = Button(frame_filtrar, text="Buscar", font=("Arial", 13, "bold"),
-                            command=lambda: self.buscar_venta(combo_campo.get(),combo_valor.get()))
-        btn_buscar.grid(row=0, column=3, sticky="nsew")
+        self.btn_buscar = Button(self.frame_filtrar, text="Buscar", font=("Arial", 13, "bold"),
+                            command=lambda: self.buscar_venta(self.combo_campo.get(),self.combo_valor.get()))
+        self.btn_buscar.grid(row=0, column=3, sticky="nsew", padx=5)
 
-        # TABLA VENTAS
+        # --- TABLA VENTAS ---
         columnas_ventas = ["ID", "Fecha","Hora", "Total"]
-        frame_tablaventas = Frame(frameVENTA,height=200)
+        frame_tablaventas = Frame(self.frameVENTA,height=200)
         frame_tablaventas.pack(fill="x")
         self.tabla = tabla(
             frame_tablaventas,
@@ -148,7 +157,7 @@ class mainVentas(Frame):
             callback_seleccion=self.actualizar_id
         )
 
-        # Fix: Desactivar scroll global SOLO en la tabla de ventas
+        # Fix scroll
         self.tabla.bind("<Enter>", _unbind_mouse)
         self.tabla.bind("<Leave>", _bind_mouse)
 
@@ -160,26 +169,33 @@ class mainVentas(Frame):
             self.ver_detalles()
         self.tabla.bind("<<TreeviewSelect>>", seleccionar_fila)
 
-        frame_botones = Frame(frameVENTA, bg=COLOR_FRAME)
-        frame_botones.pack_propagate(False)
-        frame_botones.pack(padx=20, pady=10)
+        # --- FRAME BOTONES ---
+        self.frame_botones = Frame(self.frameVENTA, bg=COLOR_FRAME)
+        # Quitamos pack_propagate(False) para que se ajuste al contenido (filas)
+        self.frame_botones.pack(padx=20, pady=10)
 
-        btn_añadir = Button(frame_botones, text="Añadir", font=("Arial", 16, "bold"), width=15,
+        self.btn_anadir = Button(self.frame_botones, text="Añadir", font=("Arial", 16, "bold"), width=15,
                             fg="white", bg="#86B7D6",
                             command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
-        btn_añadir.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        # Posición inicial
+        self.btn_anadir.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        btn_actualizar = Button(frame_botones, text="Actualizar", font=("Arial", 16, "bold"), width=15,
+        self.btn_actualizar = Button(self.frame_botones, text="Actualizar", font=("Arial", 16, "bold"), width=15,
                                 fg="white", bg="#86B7D6",
                                 command=lambda: self.controlador.mostrar_pantalla("actualizarventas",self.id_seleccionado))
-        btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        self.btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
-        btn_eliminar = Button(frame_botones, text="Eliminar", font=("Arial", 16, "bold"), width=15,
+        self.btn_eliminar = Button(self.frame_botones, text="Eliminar", font=("Arial", 16, "bold"), width=15,
                               fg="white", bg="#86B7D6",
                               command=lambda: self.eliminar_venta())
-        btn_eliminar.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
+        self.btn_eliminar.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
 
         self.buscar_venta("Todo","")
+
+        # --- EVENTO RESPONSIVE ---
+        # Vinculamos el cambio de tamaño de frameVENTA a la función de ajuste
+        self.modo_actual = "wide" # Para evitar re-renderizados innecesarios
+        self.frameVENTA.bind("<Configure>", self.ajustar_layout)
 
         # FRAME DETALLES
         lbl_titulo = Label(frameDETALLES,text="Detalles de venta",font=("Arial", 22),
@@ -196,15 +212,16 @@ class mainVentas(Frame):
             anchos=[5,15,120,20,30]
         )
         
+        for child in frame_tabladetalles.winfo_children():
+            if isinstance(child, ttk.Scrollbar):
+                child.pack_forget() 
 
-
-        # --- FRAME REPORTES (Modificado para gráficos) ---
-        # Aumentamos un poco más la altura para que quepan dos gráficos cómodamente
+        # --- FRAME REPORTES ---
         frameREPORTES = Frame(body, bg=COLOR_FRAME, height=1200) 
         frameREPORTES.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=20)
         frameREPORTES.pack_propagate(False)
         
-        # Contenedor para título
+        # ... Contenido de reportes (igual que antes) ...
         frame_header_rep = Frame(frameREPORTES, bg=COLOR_FRAME)
         frame_header_rep.pack(anchor="nw",padx=(20,0),pady=(30,5))
 
@@ -212,12 +229,10 @@ class mainVentas(Frame):
                              font=("Arial", 24), bg=COLOR_FRAME, fg="white")
         lbl_reportes.pack(side="left",pady=10)
 
-        # ---- SECCION 1: VENTAS POR PRODUCTO ----
         lbl_seccion1 = Label(frameREPORTES, text="Ventas por producto", 
                              font=("Arial", 20), bg=COLOR_FRAME, fg="white")
         lbl_seccion1.pack(anchor="w", padx=40,pady=5)
 
-        # Botones de periodo 1
         frame_botones_rep1 = Frame(frameREPORTES, bg=COLOR_FRAME)
         frame_botones_rep1.pack(padx=40,anchor="w")
         
@@ -228,17 +243,13 @@ class mainVentas(Frame):
         Button(frame_botones_rep1, text="Trimestral", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
                command=lambda: self.actualizar_grafico_vp("Trimestral")).grid(row=0,column=2,padx=5,pady=2)
          
-        # Label para mostrar la imagen del gráfico 1
         self.lbl_imagen_grafico_vp = Label(frameREPORTES, bg=COLOR_FRAME)
         self.lbl_imagen_grafico_vp.pack(padx=(40,0), pady=10,anchor="w")
 
-
-        # ---- SECCION 2: INGRESOS DEL NEGOCIO ----
         lbl_seccion2 = Label(frameREPORTES, text="Ingresos del Negocio", 
                              font=("Arial", 20), bg=COLOR_FRAME, fg="white")
         lbl_seccion2.pack(anchor="w", padx=40, pady=(20, 5))
 
-        # Botones de periodo 2
         frame_botones_rep2 = Frame(frameREPORTES, bg=COLOR_FRAME)
         frame_botones_rep2.pack(padx=40, anchor="w")
 
@@ -249,25 +260,53 @@ class mainVentas(Frame):
         Button(frame_botones_rep2, text="Trimestral", font=("Arial", 16, "bold"), width=12, fg="white", bg="#86B7D6",
                command=lambda: self.actualizar_grafico_ingresos("Trimestral")).grid(row=0, column=2, padx=5, pady=2)
 
-        # Label para mostrar la imagen del gráfico 2
         self.lbl_imagen_grafico_ingresos = Label(frameREPORTES, bg=COLOR_FRAME)
         self.lbl_imagen_grafico_ingresos.pack(padx=(40, 0), pady=10, anchor="w")
         
-        # --------------------------------------------------
-        
-        # Cargar gráficos iniciales
         self.actualizar_grafico_vp("Semanal") 
         self.actualizar_grafico_ingresos("Semanal")
 
+    # --- FUNCION DE AJUSTE RESPONSIVO ---
+    def ajustar_layout(self, event):
+        # Ancho del frameVENTA. En 1024x720 dividido en 2, debería ser aprox 500px.
+        # Usamos 480px como umbral seguro para el cambio.
+        if event.width < 600 and self.modo_actual != "compact":
+            # MODO COMPACTO (Ventana Pequeña)
+            # Filtrar: Label arriba (col 0-3), controles abajo (col 0, 1, 2)
+            self.lbl_filtrar.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0,5))
+            self.combo_campo.grid(row=1, column=0, sticky="ew", padx=2)
+            self.combo_valor.grid(row=1, column=1, sticky="ew", padx=2)
+            self.btn_buscar.grid(row=1, column=2, sticky="ew", padx=2)
+            
+            # Botones: Eliminar pasa a fila 1, ocupando todo el ancho
+            self.btn_anadir.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+            self.btn_actualizar.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+            self.btn_eliminar.grid(row=1, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+            
+            self.modo_actual = "compact"
+
+        elif event.width >= 600 and self.modo_actual != "wide":
+            # MODO ORIGINAL (WIDE)
+            # Filtrar: Todo en una fila (fila 0)
+            self.lbl_filtrar.grid(row=0, column=0, columnspan=1, sticky="w", pady=0)
+            self.combo_campo.grid(row=0, column=1, sticky="nsew", padx=5)
+            self.combo_valor.grid(row=0, column=2, sticky="nsew", padx=5)
+            self.btn_buscar.grid(row=0, column=3, sticky="nsew", padx=5)
+
+            # Botones: Todo en fila 0
+            self.btn_anadir.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+            self.btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+            self.btn_eliminar.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
+            
+            self.modo_actual = "wide"
+    # ------------------------------------
+
     # --- LÓGICA DE GRÁFICOS ---
-    #vp: venta por producto
-    #in: ingresos
-    def actualizar_grafico_vp(self, periodo):#Grafico venta por producto
+    def actualizar_grafico_vp(self, periodo):
         datos = ventasCRUD.reportes.obtener_datos_grafico(periodo)
         if not datos:
             self.lbl_imagen_grafico_vp.config(image="", text="No hay datos para este periodo")
             return
-        
         self.generar_imagen_grafico_vp(datos, periodo)
 
     def generar_imagen_grafico_vp(self, datos, periodo):
@@ -275,7 +314,6 @@ class mainVentas(Frame):
         cantidades = [float(fila[1]) for fila in datos]
         totales = [float(fila[2]) for fila in datos]
 
-        # Crear gráfico
         fig, ax1 = plt.subplots(figsize=(10, 4))
         
         ax1.set_title(f'Ventas por Producto ({periodo})', fontsize=14)
@@ -284,11 +322,8 @@ class mainVentas(Frame):
         ax1.set_ylabel('Cantidad Vendida (Unidades)', color=color)
         ax1.bar(productos, cantidades, color=color, alpha=0.6, label='Unidades')
         ax1.tick_params(axis='y', labelcolor=color)
-        
-        # Rotar textos para que se lean bien
         plt.setp(ax1.xaxis.get_majorticklabels(), rotation=15, ha="right")
 
-        # Eje secundario (Dinero)
         ax2 = ax1.twinx()
         color = 'tab:red'
         ax2.set_ylabel('Dinero Generado ($)', color=color)  
@@ -297,80 +332,56 @@ class mainVentas(Frame):
 
         fig.tight_layout()
 
-        # GUARDADO EN CARPETA IMAGES (RAÍZ)
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         ruta_carpeta = os.path.join(base_dir, "images")
-        
         if not os.path.exists(ruta_carpeta):
             os.makedirs(ruta_carpeta)
             
-        # MODIFICADO: Incluye el periodo en el nombre
         nombre_archivo = f"grafico_ventas_{periodo}.png"
         ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
-        
         plt.savefig(ruta_completa)
         plt.close(fig)
 
-        # Carga usando tu función
         self.img_grafico = obtener_imagen(nombre_archivo, 800, 450)
-        
         if self.img_grafico:
             self.lbl_imagen_grafico_vp.config(image=self.img_grafico, text="")
         else:
             self.lbl_imagen_grafico_vp.config(text="Error al cargar la imagen generada")
     
-    # ------------------ GRAFICO INGRESOS ------------------
     def actualizar_grafico_ingresos(self, periodo):
         datos = ventasCRUD.reportes.obtener_ingresos_grafico(periodo)
         if not datos:
             self.lbl_imagen_grafico_ingresos.config(image="", text="No hay datos de ingresos para este periodo")
             return
-        
         self.generar_imagen_grafico_ingresos(datos, periodo)
 
     def generar_imagen_grafico_ingresos(self, datos, periodo):
-        # datos = [(fecha, total), ...]
-        # Aseguramos que las fechas se procesen bien
         fechas = [fila[0] for fila in datos]
         ingresos = [float(fila[1]) for fila in datos]
 
         fig, ax = plt.subplots(figsize=(10, 4))
-        
         ax.set_title(f'Ingresos del Negocio ({periodo})', fontsize=14)
         ax.set_xlabel('Fecha')
         ax.set_ylabel('Ingresos Totales ($)')
-        
-        # Graficar línea
         ax.plot(fechas, ingresos, marker='o', linestyle='-', color='green', linewidth=2)
-        
-        # Formatear eje X para fechas
-        fig.autofmt_xdate() # Rota las fechas automáticamente
-
+        fig.autofmt_xdate() 
         fig.tight_layout()
 
-        # Guardado
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         ruta_carpeta = os.path.join(base_dir, "images")
-        
         if not os.path.exists(ruta_carpeta):
             os.makedirs(ruta_carpeta)
             
-        # MODIFICADO: Incluye el periodo en el nombre
         nombre_archivo = f"grafico_ingresos_{periodo}.png"
         ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
-        
         plt.savefig(ruta_completa)
         plt.close(fig)
 
-        # Carga
         self.img_grafico_ingresos = obtener_imagen(nombre_archivo, 800, 450)
-        
         if self.img_grafico_ingresos:
             self.lbl_imagen_grafico_ingresos.config(image=self.img_grafico_ingresos, text="")
         else:
             self.lbl_imagen_grafico_ingresos.config(text="Error al cargar el gráfico de ingresos")
-
-    # ------------------------------------
 
     def buscar_venta(self,campo,valor):
         registros = ventasCRUD.ventas.buscar(campo,valor)
@@ -433,7 +444,7 @@ class insertarVentas(Frame):
         vsb.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
 
-        body = Frame(canvas, bg=COLOR_FRAME)  # el 'body' original (nombre conservado)
+        body = Frame(canvas, bg=COLOR_FRAME)
         window_id = canvas.create_window((0, 0), window=body, anchor="nw")
 
         def _on_body_configure(event):
@@ -446,28 +457,23 @@ class insertarVentas(Frame):
             canvas.configure(scrollregion=canvas.bbox("all"))
         canvas.bind("<Configure>", _on_canvas_configure)
         # --- fin scrollable para insertarVentas ---
-
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
         body.rowconfigure(0, weight=1)
 
         precios_result = ventasCRUD.menu.obtenerPrecios()
-        # precios_result is list of tuples (precio,) or empty list
         self.precios = [fila[0] for fila in precios_result] if precios_result else []
 
         frame_prod = Frame(body,bg=COLOR_FRAME)
         frame_total = Frame(body,bg=COLOR_FRAME)
 
         #frame prod
-        #Comida
         lbl_prod = Label(frame_prod,text="Producto",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
         lbl_prod.grid(row=0,column=0)
 
         lbl_cant = Label(frame_prod,text="Cantidad",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
         lbl_cant.grid(row=0,column=1)
 
-
-        #self.opciones_prod = ["Hamburguesa doble","Hamburguesa especial","Hamburguesa especial","Hotdog","Ingrediente extra","Refresco","Agua"]
         productos_result = ventasCRUD.menu.obtenerProductos()
         self.opciones_prod = [fila[0] for fila in productos_result] if productos_result else []
 
@@ -502,9 +508,7 @@ class insertarVentas(Frame):
             self.spinbox_prod.append(spin)
             spin.grid(row=i+1, column=1, sticky="nsew")
 
-
         #frame total
-
         frame_total.pack_propagate(False)
         lbl_msj = Label(frame_total,text="Total",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
         lbl_msj.pack(pady=(50,5))
@@ -527,8 +531,7 @@ class insertarVentas(Frame):
         btn_volver = Button(frame_total,text="Volver",width=20,font=("Arial",20),command=lambda:self.controlador.mostrar_pantalla("mainventas"),bg="#669BBC",fg="white")
         btn_volver.pack(pady=5)
 
-        #Fecha
-        f = len(self.opciones_prod)+1 #Filas actuales del grid en frame_prod
+        f = len(self.opciones_prod)+1 
         self.fecha = DateEntry(
                  frame_prod,
                  date_pattern="dd/mm/yyyy",
@@ -542,7 +545,6 @@ class insertarVentas(Frame):
 
         lbl_hora = Label(frame_prod,text="Hora: ",font=("Arial", 20),bg=COLOR_FRAME,fg="white")
         lbl_hora.grid(row=f+2,column=0,pady=5,sticky="e")
-
 
         frame_hora = Frame(frame_prod,bg=COLOR_FRAME)
         frame_hora.grid(row=f+2,column=1,sticky="nsew")
@@ -564,8 +566,6 @@ class insertarVentas(Frame):
         lbl_min = Label(frame_hora,text=":",font=("Arial", 30,"bold"),bg=COLOR_FRAME,fg="white")
         lbl_min.grid(row=0,column=1,pady=5,sticky="e")
         self.spin_minuto.grid(row=0,column=2)
-
-
 
         match accion:
             case "agregar":
@@ -606,11 +606,8 @@ class insertarVentas(Frame):
 
                 btn_agregar.config(text="Actualizar venta",command=lambda:self.actualizarVenta())
 
-                # obtener_cantidades devuelve lista de ints, en orden de menu
                 self.cantidades = ventasCRUD.detalleVenta.obtener_cantidades(self.id_seleccionado)
-                # si por alguna razón devuelve None o vacío, rellenar con ceros según cantidad de productos
                 if not isinstance(self.cantidades, list) or len(self.cantidades) != len(self.opciones_prod):
-                    # fallback: crear lista de ceros con la longitud de opciones_prod
                     self.cantidades = [0]*len(self.opciones_prod)
                 registros = ventasCRUD.ventas.obtener_hora(self.id_seleccionado)
 
@@ -628,7 +625,6 @@ class insertarVentas(Frame):
                     self.spinbox_prod[i].delete(0, "end")
                     self.spinbox_prod[i].insert(0, str(cantidad))
                     i+=1
-                # calcular total inicial basado en cantidades y precios
                 total = 0
                 for idx in range(len(self.opciones_prod)):
                     precio = float(self.precios[idx]) if idx < len(self.precios) else 0
@@ -636,9 +632,7 @@ class insertarVentas(Frame):
                 self.total_venta = total
                 self.lbl_total.config(text=f"$ {total:.2f}")
 
-
     def spin_cambio(self, index, valor):
-        # recalcula total cuando se cambia un spinbox
         cant_prod = []
         for i in range(len(self.spinbox_prod)):
             val = self.spinbox_prod[i].get()
@@ -656,7 +650,6 @@ class insertarVentas(Frame):
 
     def validar_spin(self, nuevo_valor, index):
         if nuevo_valor.isdigit() or nuevo_valor == "":
-            # no pasar index por validatecommand, solo recalcular total
             self.spin_cambio(index, nuevo_valor)
             return True
         return False
@@ -675,40 +668,48 @@ class insertarVentas(Frame):
         if self.total_venta == 0:
             messagebox.showwarning("Advertencia","Ingrese productos para continuar")
             return
-        fecha = self.fecha.get_date()
-        hora = f"{self.spin_hora.get()}:{"00" if self.spin_minuto.get() == "0" else self.spin_minuto.get()}"
-        insertar,id = ventasCRUD.ventas.insertar(self.total_venta,fecha,hora)
-        if not insertar:
-            messagebox.showerror("Error","No se pudo insertar la venta.")
-            return
-        insertar_detalle_ok = True
-        for i in range(len(self.spinbox_prod)):
-            cantidad = int(self.spinbox_prod[i].get())
-            if cantidad > 0:
-                ok = ventasCRUD.detalleVenta.insertar(id,self.opciones_prod[i],cantidad)
-                if not ok:
-                    insertar_detalle_ok = False
-        if insertar and insertar_detalle_ok:
-            messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
-            self.limpiar()
-        else:
-            messagebox.showerror("Error", "Ocurrió un error al guardar los detalles de la venta.")
-            
+        try:
+            fecha = self.fecha.get_date()
+            int(self.spin_hora.get())
+            int(self.spin_minuto.get())
+            hora = f"{self.spin_hora.get()}:{self.spin_minuto.get()}"
+            insertar,id = ventasCRUD.ventas.insertar(self.total_venta,fecha,hora)
+            if not insertar:
+                messagebox.showerror("Error","No se pudo insertar la venta.")
+                return
+            insertar_detalle_ok = True
+            for i in range(len(self.spinbox_prod)):
+                cantidad = int(self.spinbox_prod[i].get())
+                if cantidad > 0:
+                    ok = ventasCRUD.detalleVenta.insertar(id,self.opciones_prod[i],cantidad)
+                    if not ok:
+                        insertar_detalle_ok = False
+            if insertar and insertar_detalle_ok:
+                messagebox.showinfo("Exito", "La venta se guardó exitosamente.")
+                self.limpiar()
+            else:
+                messagebox.showerror("Error", "Ocurrió un error al guardar los detalles de la venta.")
+        except ValueError:
+                messagebox.showerror("Error", "Ingrese solo numeros")
 
     def actualizarVenta(self):
-        # toma las cantidades previas (self.cantidades) y las nuevas de los spinboxes
         if self.id_seleccionado is None:
             messagebox.showerror("Error", "ID de venta no definido.")
             return
-
+        try:
+            int(self.spin_hora.get())
+            int(self.spin_minuto.get())
+        except ValueError:
+            messagebox.showerror("Error", "Ingrese solo numeros")
+            return
         new_quantities = []
         for sp in self.spinbox_prod:
             try:
                 new_quantities.append(int(sp.get()))
             except:
-                new_quantities.append(0)
+                messagebox.showerror("Error", "Ingrese solo numeros")
+                return
 
-        # Si todos en cero -> eliminar todos los detalles y la venta
         if all(q == 0 for q in new_quantities):
             confirmar = messagebox.askyesno("Confirmar eliminación", "Todos los productos quedaron en 0. ¿Desea eliminar la venta completa?")
             if not confirmar:
@@ -722,36 +723,28 @@ class insertarVentas(Frame):
                 messagebox.showerror("Error", "No se pudo eliminar la venta por completo.")
             return
 
-        # Caso general: revisar cada producto y aplicar insertar/actualizar/eliminar según cambio
         any_error = False
         for i in range(len(self.opciones_prod)):
             prev = int(self.cantidades[i]) if i < len(self.cantidades) else 0
             new = int(new_quantities[i])
             if new == prev:
-                continue  # sin cambio
+                continue
 
-            # Si prev == 0 y new > 0 -> insertar nuevo detalle
             if prev == 0 and new > 0:
                 ok = ventasCRUD.detalleVenta.insertar(self.id_seleccionado, self.opciones_prod[i], new)
                 if not ok:
                     any_error = True
-
-            # Si prev > 0 y new == 0 -> eliminar detalle
             elif prev > 0 and new == 0:
                 id_det = ventasCRUD.detalleVenta.obtener_id_detalle(self.id_seleccionado, i+1)
                 if id_det is None:
-                    # no se encontró detalle: marcar error
                     any_error = True
                 else:
                     ok = ventasCRUD.detalleVenta.eliminar(id_det)
                     if not ok:
                         any_error = True
-
-            # Si prev >0 y new >0 (cambio de cantidad) -> actualizar
             elif prev > 0 and new > 0:
                 id_det = ventasCRUD.detalleVenta.obtener_id_detalle(self.id_seleccionado, i+1)
                 if id_det is None:
-                    # intenta insertar si no existe (por seguridad)
                     ok = ventasCRUD.detalleVenta.insertar(self.id_seleccionado, self.opciones_prod[i], new)
                     if not ok:
                         any_error = True
@@ -760,25 +753,21 @@ class insertarVentas(Frame):
                     if not ok:
                         any_error = True
 
-        # recalcular total y actualizar la fila de ventas
-        # recalcula sum(subtotal) desde DB para evitar errores
         detalles = ventasCRUD.detalleVenta.buscar(self.id_seleccionado)
         nuevo_total = 0.0
         for d in detalles:
-            # d => (id_detalle, id_venta, nombre, cantidad, subtotal)
             try:
                 nuevo_total += float(d[4])
             except:
                 pass
         fecha = self.fecha.get_date()
-        hora = f"{self.spin_hora.get()}:{"00" if self.spin_minuto.get() == "0" else self.spin_minuto.get()}"
+        hora = f"{self.spin_hora.get()}:{self.spin_minuto.get()}"
         ok_total = ventasCRUD.ventas.actualizar_total(self.id_seleccionado, nuevo_total,fecha,hora)
         if any_error or not ok_total:
             messagebox.showerror("Error", "Ocurrieron errores al actualizar la venta. Revise la consola o la base de datos.")
         else:
             messagebox.showinfo("Éxito", "La venta se actualizó correctamente.")
             self.controlador.mostrar_pantalla("mainventas")
-
 
 class tabla(ttk.Treeview):
     def __init__(self, parent, columnas, callback_seleccion=None,anchos=None):

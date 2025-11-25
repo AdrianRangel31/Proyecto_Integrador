@@ -4,7 +4,7 @@ from tkinter import messagebox
 class ventas:
     @staticmethod
     def buscar(campo,valor=None):
-        cambio = {"ID":"id_venta","Fecha":"fecha_venta","Total":"total_venta"}
+        cambio = {"ID":"id_venta","Fecha":"fecha_venta","Total":"total_venta","Hora":"hora_venta"}
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
@@ -12,6 +12,8 @@ class ventas:
         try:
             if campo=="Todo":
                 cursor.execute("select * from ventas")
+            elif campo=="Hora":
+                cursor.execute(f"select * from ventas where hora_venta like '%{valor}%'")
             else:
                 match valor:
                     case "Más recientes":
