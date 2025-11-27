@@ -8,12 +8,13 @@ class Usuarios:
     def iniciar_sesion(email, password):
         cursor, conexion = conectarBD()
         try:
-            # Encriptamos la contraseña ingresada para compararla con la BD
+            # Encriptamos la contraseña para comparar
             password = hashlib.sha256(password.encode()).hexdigest()
+            # Usamos backticks en apellido paterno por tener espacio en el nombre de la columna
             cursor.execute(
-                    "select * from usuarios where correo=%s and password=%s",
-                    (email, password)
-                    )
+                "SELECT * FROM usuarios WHERE correo=%s AND password=%s",
+                (email, password)
+            )
             usuario = cursor.fetchone()
             desconectarBD(conexion)
             if usuario:
@@ -24,15 +25,16 @@ class Usuarios:
             print(f"🔴 Error en BD al iniciar sesión: {e}")
             return None
 
-    # --- NUEVOS MÉTODOS CRUD ---
-
     @staticmethod
     def buscar():
         cursor, conexion = conectarBD()
         if cursor is None: return []
         try:
-            # Seleccionamos id, nombre, apellidos, correo, password (hash)
-            cursor.execute("SELECT id_usuario, nombre, apellidos, correo, password FROM usuarios")
+            # CORRECCIÓN: La BD tiene `apellido paterno` y `apellido_materno`.
+            # La interfaz solo pide "Apellidos", así que unimos ambos o traemos el paterno.
+            # Nota el uso de ` ` (backticks) para 'apellido paterno' porque tiene un espacio.
+            sql = "SELECT id_usuario, nombre, `apellido paterno`, correo, password FROM usuarios"
+            cursor.execute(sql)
             datos = cursor.fetchall()
             desconectarBD(conexion)
             return datos
@@ -45,9 +47,13 @@ class Usuarios:
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
-            # Encriptamos la contraseña antes de guardarla
             pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
-            sql = "INSERT INTO usuarios (nombre, apellidos, correo, password) VALUES (%s, %s, %s, %s)"
+            
+            # CORRECCIÓN: Insertamos el valor del formulario en `apellido paterno`.
+            # Enviamos una cadena vacía "" a `apellido_materno` para cumplir con el NOT NULL de la BD.
+            sql = "INSERT INTO usuarios (nombre, `apellido paterno`, apellido_materno, correo, password, Rol) VALUES (%s, %s, '', %s, %s, '')"
+            
+            # Nota: También agregué 'Rol' como vacío para evitar error si no tiene default.
             val = (nombre, apellidos, correo, pass_encrypt)
             
             cursor.execute(sql, val)
@@ -63,14 +69,14 @@ class Usuarios:
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
-            # Si la contraseña está vacía, actualizamos todo MENOS la contraseña
             if not password:
-                sql = "UPDATE usuarios SET nombre=%s, apellidos=%s, correo=%s WHERE id_usuario=%s"
+                # Actualizar sin tocar la contraseña
+                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, correo=%s WHERE id_usuario=%s"
                 val = (nombre, apellidos, correo, id_usuario)
             else:
-                # Si hay contraseña nueva, la encriptamos y actualizamos todo
+                # Actualizar con nueva contraseña
                 pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
-                sql = "UPDATE usuarios SET nombre=%s, apellidos=%s, correo=%s, password=%s WHERE id_usuario=%s"
+                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, correo=%s, password=%s WHERE id_usuario=%s"
                 val = (nombre, apellidos, correo, pass_encrypt, id_usuario)
 
             cursor.execute(sql, val)
@@ -86,7 +92,9 @@ class Usuarios:
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
-            cursor.execute(f"DELETE FROM usuarios WHERE id_usuario = {id_usuario}")
+            # Usamos parámetros para evitar inyección SQL básica y errores de formato
+            sql = "DELETE FROM usuarios WHERE id_usuario = %s"
+            cursor.execute(sql, (id_usuario,))
             conexion.commit()
             desconectarBD(conexion)
             return True
