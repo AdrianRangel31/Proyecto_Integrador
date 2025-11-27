@@ -613,7 +613,7 @@ class insertarVentas(Frame):
 
                 fecha = registros[0][0]
                 self.fecha.set_date(fecha)
-                hora = registros[0][1]
+                hora = str(registros[0][1])
                 hora = hora.split(":")
                 self.spin_hora.delete(0,"end")
                 self.spin_minuto.delete(0,"end")

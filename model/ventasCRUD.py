@@ -94,7 +94,7 @@ class detalleVenta:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return False
         try:
-            cursor.execute("select id_menu,precio from menu where nombre = %s", (producto,))
+            cursor.execute("select id_menu,precio from productos where nombre = %s", (producto,))
             registros = cursor.fetchall()
             if not registros:
                 messagebox.showerror("Error", f"No existe el producto '{producto}' en el menú.")
@@ -118,7 +118,7 @@ class detalleVenta:
             cursor.execute("""
                 SELECT dv.id_detalle, dv.id_venta, m.nombre, dv.cantidad, dv.subtotal
                 FROM detalle_venta dv
-                JOIN menu m ON dv.id_menu = m.id_menu
+                JOIN productos m ON dv.id_menu = m.id_menu
                 WHERE dv.id_venta = %s
             """, (id,))
             return cursor.fetchall()
@@ -133,7 +133,7 @@ class detalleVenta:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return False
         try:
-            cursor.execute("select precio from menu where nombre = %s", (producto,))
+            cursor.execute("select precio from productos where nombre = %s", (producto,))
             registros = cursor.fetchall()
             if not registros:
                 messagebox.showerror("Error", f"No existe el producto '{producto}' en el menú.")
@@ -188,7 +188,7 @@ class detalleVenta:
         try:
             cursor.execute("""
                 SELECT m.id_menu, COALESCE(dv.cantidad, 0) as cantidad
-                FROM menu m
+                FROM productos m
                 LEFT JOIN detalle_venta dv ON dv.id_menu = m.id_menu AND dv.id_venta = %s
                 ORDER BY m.id_menu
             """, (id_venta,))
@@ -229,7 +229,7 @@ class menu:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return []
         try:
-            cursor.execute("select precio from menu order by id_menu")
+            cursor.execute("select precio from productos order by id_menu")
             return cursor.fetchall()
         except Exception as e:
             messagebox.showerror("Error", f"No se pudieron obtener precios: {e}")
@@ -242,7 +242,7 @@ class menu:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return []
         try:
-            cursor.execute("select nombre from menu order by id_menu")
+            cursor.execute("select nombre from productos order by id_menu")
             return cursor.fetchall()
         except Exception as e:
             messagebox.showerror("Error", f"No se pudieron obtener productos: {e}")
@@ -273,7 +273,7 @@ class reportes:
             SELECT m.nombre, SUM(dv.cantidad) as total_cantidad, SUM(dv.subtotal) as total_dinero
             FROM detalle_venta dv
             JOIN ventas v ON dv.id_venta = v.id_venta
-            JOIN menu m ON dv.id_menu = m.id_menu
+            JOIN productos m ON dv.id_menu = m.id_menu
             WHERE v.fecha_venta >= DATE_SUB(CURDATE(), {intervalo})
             GROUP BY m.nombre
             ORDER BY total_cantidad DESC
