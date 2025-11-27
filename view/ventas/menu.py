@@ -12,30 +12,39 @@ class ventanaMenu(Toplevel):
         self.config(bg=COLOR_FRAME)
         # Esto impide interactuar con la ventana de Ventas hasta cerrar esta
         self.grab_set() 
-        lbl_prod = Label(self,text="Producto",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
+
+
+        precios_result = ventasCRUD.menu.obtenerPrecios()
+        self.precios = [fila[0] for fila in precios_result] if precios_result else []
+
+        frame_prod = Frame(self,bg=COLOR_FRAME)
+        frame_prod.pack()
+
+
+        #frame prod
+        lbl_prod = Label(frame_prod,text="Producto",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
         lbl_prod.grid(row=0,column=0)
 
-        lbl_cant = Label(self,text="Cantidad",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
+        lbl_cant = Label(frame_prod,text="Precio",font=("Arial", 24),fg="white",bg=COLOR_FRAME)
         lbl_cant.grid(row=0,column=1)
 
         productos_result = ventasCRUD.menu.obtenerProductos()
         self.opciones_prod = [fila[0] for fila in productos_result] if productos_result else []
 
         for i in range(len(self.opciones_prod)):
-            lbl = Label(self,text=self.opciones_prod[i],font=("Arial", 20),fg="black",bg="white", highlightthickness=2,
+            lbl = Label(frame_prod,text=self.opciones_prod[i],font=("Arial", 20),fg="black",bg="white", highlightthickness=2,
                             highlightbackground="black",
                             highlightcolor="black")
             lbl.grid(row=i+1,column=0,sticky="nsew")
-        
-        self.spinbox_prod = []
+
+        precios_result = ventasCRUD.menu.obtenerPrecios()
+        self.precios = [fila[0] for fila in precios_result] if precios_result else []
+
+        self.entry_precios = []
 
         for i in range(len(self.opciones_prod)):
-            def make_vcmd(idx):
-                return (self.register(lambda val, idx=idx: self.validar_spin(val, idx)), "%P")
-            vcmd = make_vcmd(i)
-            spin = Spinbox(
-                self,
-                from_=0, to=100,
+            entry = Entry(
+                frame_prod,
                 font=("Arial", 20),
                 width=4,
                 bg="white",
@@ -44,14 +53,13 @@ class ventanaMenu(Toplevel):
                 relief="flat",
                 highlightthickness=2,
                 highlightbackground="black",
-                highlightcolor="black",
-                command=lambda idx=i: self.spin_cambio(idx, self.spinbox_prod[idx].get()),
-                validate="key",
-                validatecommand=lambda:vcmd
+                highlightcolor="black"
+                
             )
-            self.spinbox_prod.append(spin)
-            spin.grid(row=i+1, column=1, sticky="nsew")
-
+            entry.grid(row=i+1, column=1, sticky="nsew")
+            entry.insert(0,self.precios[i])
+            self.entry_precios.append(entry)
+            
         
         btn_guardar = Button(self, text="Guardar Cambios", bg="#4CAF50", fg="white")
         btn_guardar.pack(pady=20)

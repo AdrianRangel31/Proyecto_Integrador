@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
 from controller.funciones import obtener_imagen
-from menu import *
+from view.ventas.menu import *
 
 COLOR_FRAME = "#c60000"
 
