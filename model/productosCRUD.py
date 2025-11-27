@@ -7,23 +7,23 @@ class Productos:
     def buscar(campo="Todo", valor=None):
         cursor, conexion = conectarBD()
         if cursor == None:
-            messagebox.showinfo("Aviso", "no se pudo conectarse con la base de datos")
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return []
 
-        sql = "SELECT * FROM productos"
+        sql = "SELECT * FROM ingredientes"
         
         if campo == "Todo":
-            sql = "SELECT * FROM productos"
+            sql = "SELECT * FROM ingredientes"
         else:
             match valor:
                 case "Mayor Precio":
-                    sql = "SELECT * FROM productos ORDER BY precio DESC"
+                    sql = "SELECT * FROM ingredientes ORDER BY precio DESC"
                 case "Menor Precio":
-                    sql = "SELECT * FROM productos ORDER BY precio ASC"
+                    sql = "SELECT * FROM ingredientes ORDER BY precio ASC"
                 case "Stock Bajo":
-                    sql = "SELECT * FROM productos ORDER BY cantidad ASC"
+                    sql = "SELECT * FROM ingredientes ORDER BY cantidad ASC"
                 case "Por Caducar":
-                    sql = "SELECT * FROM productos ORDER BY fecha_caducidad ASC"
+                    sql = "SELECT * FROM ingredientes ORDER BY fecha_caducidad ASC"
                 case _:
                     filtros = {
                         "ID": "id_producto",
@@ -31,28 +31,34 @@ class Productos:
                         "Proveedor": "id_proveedor"
                     }
                     if campo in filtros:
-                        sql = f"SELECT * FROM productos WHERE {filtros[campo]} LIKE '%{valor}%'"
+                        sql = f"SELECT * FROM ingredientes WHERE {filtros[campo]} LIKE '%{valor}%'"
 
-        cursor.execute(sql)
-        resultado = cursor.fetchall()
-        desconectarBD(conexion)
-        return resultado
+        try:
+            cursor.execute(sql)
+            resultado = cursor.fetchall()
+            desconectarBD(conexion)
+            return resultado
+        except Exception as e:
+            messagebox.showerror("Error SQL", f"Error al buscar en ingredientes: {e}")
+            if conexion: desconectarBD(conexion)
+            return []
 
     @staticmethod
     def insertar(nombre, descripcion, cantidad, unidad, precio, fecha_cad, proveedor):
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            sql = """INSERT INTO productos 
-                    (id_producto, nombre, descripcion, cantidad, unidad, precio, fecha_caducidad, id_proveedor) 
-                    VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"""
+            sql = """INSERT INTO ingredientes 
+                        (id_producto, nombre, descripcion, cantidad, unidad, precio, fecha_caducidad, id_proveedor) 
+                        VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"""
             val = (nombre, descripcion, cantidad, unidad, precio, fecha_cad, proveedor)
             cursor.execute(sql, val)
             conexion.commit()
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar: {e}")
+            messagebox.showerror("Error", f"No se pudo guardar en ingredientes: {e}")
+            if conexion: desconectarBD(conexion)
             return False
 
     @staticmethod
@@ -60,10 +66,10 @@ class Productos:
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            sql = """UPDATE productos SET 
-                    nombre=%s, descripcion=%s, cantidad=%s, unidad=%s, precio=%s, 
-                    fecha_caducidad=%s, id_proveedor=%s 
-                    WHERE id_producto=%s"""
+            sql = """UPDATE ingredientes SET 
+                        nombre=%s, descripcion=%s, cantidad=%s, unidad=%s, precio=%s, 
+                        fecha_caducidad=%s, id_proveedor=%s 
+                        WHERE id_producto=%s"""
             val = (nombre, descripcion, cantidad, unidad, precio, fecha_cad, proveedor, id_prod)
             cursor.execute(sql, val)
             conexion.commit()
@@ -71,6 +77,7 @@ class Productos:
             return True
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo actualizar: {e}")
+            if conexion: desconectarBD(conexion)
             return False
 
     @staticmethod
@@ -78,25 +85,27 @@ class Productos:
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            cursor.execute(f"DELETE FROM productos WHERE id_producto = {id_prod}")
+            cursor.execute(f"DELETE FROM ingredientes WHERE id_producto = {id_prod}")
             conexion.commit()
             desconectarBD(conexion)
             return True
         except Exception as e:
             messagebox.showerror("Error", f"No se puede eliminar: {e}")
+            if conexion: desconectarBD(conexion)
             return False
 
-    # --- NUEVO MÉTODO PARA LA TABLA DE AYUDA ---
     @staticmethod
     def obtener_lista_proveedores():
-        """Retorna ID y Nombre de los proveedores para mostrar en la tabla de ayuda"""
         cursor, conexion = conectarBD()
-        if cursor == None: return []
-        # Asegúrate de que tu tabla proveedores tenga columnas 'id_proveedor' y 'nombre'
+        if cursor == None: 
+            return []
+        
         try:
-            cursor.execute("SELECT id_proveedor, nombre FROM proveedores")
+            cursor.execute("SELECT id_proveedor, nombre_empresa FROM proveedores")
             datos = cursor.fetchall()
             desconectarBD(conexion)
             return datos
-        except:
+        except Exception as e:
+            messagebox.showerror("Error Proveedores", f"No se pudieron cargar los proveedores.\nError técnico: {e}")
+            if conexion: desconectarBD(conexion)
             return []
