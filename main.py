@@ -184,7 +184,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 class App(Tk): #Clase donde va la ventana principal del sistema
     def __init__(self):
         super().__init__()
-        self.title("Ventas")
+        self.title("Sistema de inventario y ventas")
         self.state('zoomed')
         self.geometry("1024x720")
         self.pantallas = {} #Diccionario que contiene cada interfaz

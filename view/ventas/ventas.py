@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
 from controller.funciones import obtener_imagen
+from menu import *
 
 COLOR_FRAME = "#c60000"
 
@@ -456,6 +457,32 @@ class insertarVentas(Frame):
             canvas.itemconfig(window_id, width=event.width, height=max(event.height, req_h))
             canvas.configure(scrollregion=canvas.bbox("all"))
         canvas.bind("<Configure>", _on_canvas_configure)
+
+                # --- Scroll Logic ---
+        def _on_mousewheel(event):
+            if event.delta:
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        def _on_linux_scroll_up(event):
+            canvas.yview_scroll(-1, "units")
+
+        def _on_linux_scroll_down(event):
+            canvas.yview_scroll(1, "units")
+
+        def _bind_mouse(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            canvas.bind_all("<Button-4>", _on_linux_scroll_up)
+            canvas.bind_all("<Button-5>", _on_linux_scroll_down)
+
+        def _unbind_mouse(event):
+            canvas.unbind_all("<MouseWheel>")
+            canvas.unbind_all("<Button-4>")
+            canvas.unbind_all("<Button-5>")
+
+        container.bind("<Enter>", _bind_mouse)
+        container.bind("<Leave>", _unbind_mouse)
+        self.bind("<Destroy>", _unbind_mouse)
+
         # --- fin scrollable para insertarVentas ---
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
@@ -566,6 +593,9 @@ class insertarVentas(Frame):
         lbl_min = Label(frame_hora,text=":",font=("Arial", 30,"bold"),bg=COLOR_FRAME,fg="white")
         lbl_min.grid(row=0,column=1,pady=5,sticky="e")
         self.spin_minuto.grid(row=0,column=2)
+
+        btn_menu = Button(frame_prod,text="Modificar precios del menú",font=("Arial",16),command=lambda:self.abrir_ventana_crud(),bg="#669BBC",fg="white")
+        btn_menu.grid(row=f+3,column=0,columnspan=2,sticky="nsew",padx=80)
 
         match accion:
             case "agregar":
@@ -769,6 +799,9 @@ class insertarVentas(Frame):
             messagebox.showinfo("Éxito", "La venta se actualizó correctamente.")
             self.controlador.mostrar_pantalla("mainventas")
 
+    def abrir_ventana_crud(self):
+        crud_menu = ventanaMenu(self,self)
+
 class tabla(ttk.Treeview):
     def __init__(self, parent, columnas, callback_seleccion=None,anchos=None):
         self.columnas = columnas
@@ -810,3 +843,4 @@ class tabla(ttk.Treeview):
         self.limpiar()
         for fila in registros:
             self.insert("", "end", values=fila)
+
