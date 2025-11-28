@@ -600,13 +600,13 @@ class insertarVentas(Frame):
         match accion:
             case "agregar":
                 head.titulo = "Registrar venta"
-                frame_prod.grid(row=0,column=0,sticky="nsew",padx=40,pady=50)
-                frame_total.grid(row=0,column=1,sticky="nsew",pady=50,padx=20)
-                frame_prod.grid_propagate(False)
+                frame_prod.grid(row=0,column=0,sticky="nsew",padx=(40,10),pady=50)
+                frame_total.grid(row=0,column=1,sticky="nsew",padx=5,pady=50)
+                #frame_prod.grid_propagate(False)
             case "actualizar":
                 head.titulo = f"Actualizar venta {self.id_seleccionado}"
-                frame_prod.grid(row=1,column=0,sticky="nsew",padx=40,pady=5)
-                frame_total.grid(row=1,column=1,sticky="nsew",padx=20,pady=5)
+                frame_prod.grid(row=1,column=0,sticky="nsew",padx=(40,10),pady=5)
+                frame_total.grid(row=1,column=1,sticky="nsew",padx=5,pady=5)
                 body.rowconfigure(1, weight=1)
                 frame_tablas = Frame(body,bg="white",height=260)
                 frame_tablas.pack_propagate(False)

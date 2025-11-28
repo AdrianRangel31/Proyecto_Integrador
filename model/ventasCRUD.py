@@ -248,6 +248,45 @@ class menu:
             messagebox.showerror("Error", f"No se pudieron obtener productos: {e}")
             return []
 
+    
+    @staticmethod
+    def obtener_todo():
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            return []
+        cursor.execute("SELECT * FROM productos")
+        return cursor.fetchall()
+    
+    @staticmethod
+    def insertar(nombre, precio):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            return []
+        cursor.execute("INSERT INTO productos (nombre, precio) VALUES (%s, %s)",
+                            (nombre, precio))
+        conexion.commit()
+    
+    @staticmethod
+    def actualizar(id, nombre, precio):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            return []
+        cursor.execute("UPDATE productos SET nombre=%s, precio=%s WHERE id_menu=%s",
+                            (nombre, precio, id))
+        conexion.commit()
+    
+    @staticmethod
+    def eliminar(id):
+        cursor, conexion = conectarBD()
+        if cursor == None:
+            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            return []
+        cursor.execute("DELETE FROM productos WHERE id_menu=%s", (id,))
+        conexion.commit()
+
 # --- CLASE PARA REPORTES ---
 class reportes:
     @staticmethod

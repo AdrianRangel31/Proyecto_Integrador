@@ -5,16 +5,13 @@ class header(Frame):
         super().__init__(master)
         self.controlador = controlador
         self.config(bg="#F82A3E", height=150)
-        self.__titulo = Label(self, text="Plantilla", font=("Arial", 44), bg="#F82A3E", fg="white")
+        self.__titulo = Label(self, text="Plantilla", font=("Arial", 38), bg="#F82A3E", fg="white")
         self.logo_img = obtener_imagen("logo.png", 150, 150)
-        lbl_logo = Label(self, image=self.logo_img, compound="top", height=150, bg="#F82A3E")
-        lbl_logo.grid(row=0, column=0)
-        self.home_img = obtener_imagen("home.png", 140, 140)
-        btn_home = Button(self, image=self.home_img, height=150, bg="#F82A3E", relief="flat"
+        btn_home = Button(self, image=self.logo_img, height=150, bg="#F82A3E", relief="flat"
                           ,activebackground="#F82A3E",
                           command=lambda: self.controlador.mostrar_pantalla("Dashboard"))
-        btn_home.grid(row=0, column=1)
-        self.__titulo.grid(row=0, column=2, padx=350)
+        btn_home.grid(row=0, column=0)
+        self.__titulo.grid(row=0, column=1, padx=20)
 
     @property
     def titulo(self):

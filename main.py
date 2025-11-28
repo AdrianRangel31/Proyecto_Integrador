@@ -8,6 +8,7 @@ from view.ventas.ventas import *
 from tkinter import messagebox
 from view.Productos.productos import *
 from view.Proveedores.proveedores_interfaz import *
+from view.ventas.menu import ventanaMenu
 
 class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
@@ -216,10 +217,19 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
         self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
 
+
+        self.crear_menu_atajos()
         self.mostrar_pantalla("Login")
 
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+        if nombre == "Login":
+            # Ocultar menú en el login pasando un menú vacío
+            self.config(menu=Menu(self))
+        else:
+            # Mostrar menú en el resto de pantallas
+            self.config(menu=self.menubar)
+
         match nombre:
             case "mainventas":
                 self.pantallas["mainventas"] = mainVentas(self,self)
@@ -248,7 +258,70 @@ class App(Tk): #Clase donde va la ventana principal del sistema
                 # 3. Cambiar de pantalla
                 self.mostrar_pantalla("Dashboard")
 
-    
+    def crear_menu_atajos(self):
+            # --- CONFIGURACIÓN DE ESTILO ---
+            # Usamos los mismos colores que defines en tu Dashboard
+            COLOR_FONDO_MENU = "#F7F7F7"   # Color del Header (Rojo Brillante)
+            COLOR_LETRA = "#000000"        # Blanco
+            COLOR_ACTIVO = "#B3B3B3"       # Color Fondo App (Rojo Oscuro) para selección
+            FUENTE_MENU = ("Arial", 13) # Fuente más grande para el tamaño
+
+            # Diccionario de configuración para reutilizar en todos los menús
+            config_menu = {
+                "bg": COLOR_FONDO_MENU,
+                "fg": COLOR_LETRA,
+                "activebackground": COLOR_ACTIVO,
+                "activeforeground": COLOR_LETRA,
+                "font": FUENTE_MENU,
+                "tearoff": 0,   # Quita la línea punteada de separación
+                "bd": 0
+            }
+
+            # --- BARRA PRINCIPAL ---
+            self.menubar = Menu(self, bg=COLOR_FONDO_MENU, fg=COLOR_LETRA, font=FUENTE_MENU, bd=0)
+
+            # 1. Menú ATAJOS (General)
+            atajos_menu = Menu(self.menubar, **config_menu)
+            self.menubar.add_cascade(label="  🏠 ATAJOS RÁPIDOS  ", menu=atajos_menu)
+            
+            atajos_menu.add_command(label="🏠 Ir al Dashboard", command=lambda: self.mostrar_pantalla("Dashboard"))
+            atajos_menu.add_separator()
+            atajos_menu.add_command(label="🚪 Cerrar Sesión", command=lambda: self.mostrar_pantalla("Login"))
+
+            # 2. Menú VENTAS
+            ventas_menu = Menu(self.menubar, **config_menu)
+            self.menubar.add_cascade(label="  💰 VENTAS  ", menu=ventas_menu)
+            
+            ventas_menu.add_command(label="📄 Gestionar Ventas (Ver Tabla)", command=lambda: self.mostrar_pantalla("mainventas"))
+            ventas_menu.add_command(label="➕ Nueva Venta", command=lambda: self.mostrar_pantalla("insertarventas"))
+            ventas_menu.add_separator()
+        
+            ventas_menu.add_command(label="💲 Modificar Precios (Menú)", command=self.abrir_ventana_precios)
+
+            # 3. Menú PRODUCTOS
+            prod_menu = Menu(self.menubar, **config_menu)
+            self.menubar.add_cascade(label="  🍔 INGREDIENTES  ", menu=prod_menu)
+            
+            prod_menu.add_command(label="📦 Ver Inventario", command=lambda: self.mostrar_pantalla("productos_main"))
+            prod_menu.add_command(label="➕ Añadir Ingrediente", command=lambda: self.mostrar_pantalla("productos_insertar"))
+
+            # 4. Menú PROVEEDORES
+            prov_menu = Menu(self.menubar, **config_menu)
+            self.menubar.add_cascade(label="  🚚 PROVEEDORES  ", menu=prov_menu)
+            
+            prov_menu.add_command(label="📋 Ver Proveedores", command=lambda: self.mostrar_pantalla("proveedores_main"))
+            prov_menu.add_command(label="➕ Añadir Proveedor", command=lambda: self.mostrar_pantalla("proveedores_insertar"))
+
+            # 5. Menú USUARIOS
+            user_menu = Menu(self.menubar, **config_menu)
+            self.menubar.add_cascade(label="  👥 USUARIOS  ", menu=user_menu)
+            
+            user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))
+            user_menu.add_command(label="➕ Crear Nuevo Usuario", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
+
+    def abrir_ventana_precios(self):
+        # Abre la ventana emergente (Toplevel) definida en view/ventas/menu.py
+        ventanaMenu(self, self)
 
 if __name__ == "__main__":
     app = App()
