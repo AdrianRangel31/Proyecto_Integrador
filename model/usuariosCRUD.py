@@ -8,9 +8,7 @@ class Usuarios:
     def iniciar_sesion(email, password):
         cursor, conexion = conectarBD()
         try:
-            # Encriptamos la contraseña para comparar
             password = hashlib.sha256(password.encode()).hexdigest()
-            # Usamos backticks en apellido paterno por tener espacio en el nombre de la columna
             cursor.execute(
                 "SELECT * FROM usuarios WHERE correo=%s AND password=%s",
                 (email, password)
@@ -30,10 +28,8 @@ class Usuarios:
         cursor, conexion = conectarBD()
         if cursor is None: return []
         try:
-            # CORRECCIÓN: La BD tiene `apellido paterno` y `apellido_materno`.
-            # La interfaz solo pide "Apellidos", así que unimos ambos o traemos el paterno.
-            # Nota el uso de ` ` (backticks) para 'apellido paterno' porque tiene un espacio.
-            sql = "SELECT id_usuario, nombre, `apellido paterno`, correo, password FROM usuarios"
+            # Seleccionamos AMBOS apellidos
+            sql = "SELECT * FROM usuarios"
             cursor.execute(sql)
             datos = cursor.fetchall()
             desconectarBD(conexion)
@@ -43,18 +39,20 @@ class Usuarios:
             return []
 
     @staticmethod
-    def insertar(nombre, apellidos, correo, password):
+    def insertar(nombre, ap_paterno, ap_materno, correo, password, rol):
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
             pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
             
-            # CORRECCIÓN: Insertamos el valor del formulario en `apellido paterno`.
-            # Enviamos una cadena vacía "" a `apellido_materno` para cumplir con el NOT NULL de la BD.
-            sql = "INSERT INTO usuarios (nombre, `apellido paterno`, apellido_materno, correo, password, Rol) VALUES (%s, %s, '', %s, %s, '')"
-            
-            # Nota: También agregué 'Rol' como vacío para evitar error si no tiene default.
-            val = (nombre, apellidos, correo, pass_encrypt)
+            # Insertamos ambos apellidos
+            if not ap_materno:
+                ap_materno = ""
+                sql = "INSERT INTO usuarios (nombre, apellido_paterno, apellido_materno, correo, password, Rol) VALUES (%s, %s, '', %s, %s, %s)"
+                val = (nombre, ap_paterno, correo, pass_encrypt, rol)
+            else:
+                sql = "INSERT INTO usuarios (nombre, apellido_paterno, apellido_materno, correo, password, Rol) VALUES (%s, %s, %s, %s, %s, %s)"
+                val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt, rol)
             
             cursor.execute(sql, val)
             conexion.commit()
@@ -65,19 +63,19 @@ class Usuarios:
             return False
 
     @staticmethod
-    def actualizar(id_usuario, nombre, apellidos, correo, password):
+    def actualizar(id_usuario, nombre, ap_paterno, ap_materno, correo, password, rol):
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
             if not password:
-                # Actualizar sin tocar la contraseña
-                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, correo=%s WHERE id_usuario=%s"
-                val = (nombre, apellidos, correo, id_usuario)
+                # Actualizar SIN contraseña
+                sql = "UPDATE usuarios SET nombre=%s, apellido_paterno=%s, apellido_materno=%s, correo=%s, Rol=%s WHERE id_usuario=%s"
+                val = (nombre, ap_paterno, ap_materno, correo, rol, id_usuario)
             else:
-                # Actualizar con nueva contraseña
+                # Actualizar CON contraseña
                 pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
-                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, correo=%s, password=%s WHERE id_usuario=%s"
-                val = (nombre, apellidos, correo, pass_encrypt, id_usuario)
+                sql = "UPDATE usuarios SET nombre=%s, apellido_paterno=%s, apellido_materno=%s, correo=%s, password=%s, Rol=%s WHERE id_usuario=%s"
+                val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt, rol, id_usuario)
 
             cursor.execute(sql, val)
             conexion.commit()
@@ -92,7 +90,6 @@ class Usuarios:
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
-            # Usamos parámetros para evitar inyección SQL básica y errores de formato
             sql = "DELETE FROM usuarios WHERE id_usuario = %s"
             cursor.execute(sql, (id_usuario,))
             conexion.commit()
