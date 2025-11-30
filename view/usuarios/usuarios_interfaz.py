@@ -48,7 +48,7 @@ class UsuariosMain(EstiloBase):
         scroll.pack(side="right", fill="y")
 
         # --- AHORA SON MÁS COLUMNAS ---
-        cols = ("ID", "Nombre", "Ap_Paterno", "Ap_Materno", "Correo", "Contraseña")
+        cols = ("ID", "Nombre", "Ap_Paterno", "Ap_Materno", "Correo", "Rol")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
         style = ttk.Style()
@@ -71,8 +71,8 @@ class UsuariosMain(EstiloBase):
         self.tree.heading("Correo", text="Correo")
         self.tree.column("Correo", width=180, anchor="center")
         
-        self.tree.heading("Contraseña", text="Contraseña")
-        self.tree.column("Contraseña", width=100, anchor="center")
+        self.tree.heading("Rol", text="Rol")
+        self.tree.column("Rol", width=100, anchor="center")
         
         self.tree.pack(expand=True, fill="both")
         scroll.config(command=self.tree.yview)
@@ -109,8 +109,8 @@ class UsuariosMain(EstiloBase):
         
         usuarios = Usuarios.buscar()
         for u in usuarios:
-            # u = (id, nombre, pat, mat, correo, pass)
-            fila_visual = (u[0], u[1], u[2], u[3], u[4], "********")
+            # u = (id, nombre, pat, mat, correo, rol)
+            fila_visual = (u[0], u[1], u[2], u[3], u[4], u[7])
             self.tree.insert("", "end", values=fila_visual)
 
     def ir_a_actualizar(self, event=None):
@@ -163,7 +163,8 @@ class UsuariosInsertar(EstiloBase):
             "ap_paterno": StringVar(),
             "ap_materno": StringVar(),
             "correo": StringVar(),
-            "password": StringVar()
+            "password": StringVar(),
+            "rol": StringVar()
         }
 
         campos = [
@@ -171,7 +172,8 @@ class UsuariosInsertar(EstiloBase):
             ("Apellido Paterno", "ap_paterno"),
             ("Apellido Materno", "ap_materno"),
             ("Correo Electrónico", "correo"),
-            ("Contraseña", "password")
+            ("Contraseña", "password"),
+            ("Rol", "rol")
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
@@ -205,8 +207,9 @@ class UsuariosInsertar(EstiloBase):
         self.vars["nombre"].set(valores[1])
         self.vars["ap_paterno"].set(valores[2])
         self.vars["ap_materno"].set(valores[3])
-        self.vars["correo"].set(valores[4])
-        self.vars["password"].set("") 
+        self.vars["correo"].set(valores[4].strip())
+        self.vars["password"].set("")
+        #self.vars["rol"].set(valores[7])
         
         self.encabezado.titulo = "Editar Usuario"
         self.lbl_aviso.pack()
@@ -230,21 +233,22 @@ class UsuariosInsertar(EstiloBase):
         mat = self.vars["ap_materno"].get()
         mail = self.vars["correo"].get()
         pwd = self.vars["password"].get()
+        rol = self.vars["rol"].get()
 
-        if not nom or not pat or not mail:
-            messagebox.showwarning("Datos incompletos", "Nombre, Apellido Paterno y Correo son obligatorios.")
+        if not nom or not pat or not mail or not rol:
+            messagebox.showwarning("Datos incompletos", "Nombre, Apellido Paterno, Correo y Rol son obligatorios.")
             return
 
         if self.modo == "insertar":
             if not pwd:
                 messagebox.showwarning("Error", "La contraseña es obligatoria para nuevos usuarios.")
                 return
-            if Usuarios.insertar(nom, pat, mat, mail, pwd):
+            if Usuarios.insertar(nom, pat, mat, mail, pwd, rol):
                 messagebox.showinfo("Éxito", "Usuario creado correctamente.")
                 self.finalizar()
         
         elif self.modo == "actualizar":
-            if Usuarios.actualizar(self.id_usuario_actual, nom, pat, mat, mail, pwd):
+            if Usuarios.actualizar(self.id_usuario_actual, nom, pat, mat, mail, pwd, rol):
                 messagebox.showinfo("Éxito", "Usuario actualizado correctamente.")
                 self.finalizar()
 

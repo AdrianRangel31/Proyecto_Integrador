@@ -29,7 +29,7 @@ class Usuarios:
         if cursor is None: return []
         try:
             # Seleccionamos AMBOS apellidos
-            sql = "SELECT id_usuario, nombre, `apellido paterno`, apellido_materno, correo, password FROM usuarios"
+            sql = "SELECT * FROM usuarios"
             cursor.execute(sql)
             datos = cursor.fetchall()
             desconectarBD(conexion)
@@ -39,15 +39,20 @@ class Usuarios:
             return []
 
     @staticmethod
-    def insertar(nombre, ap_paterno, ap_materno, correo, password):
+    def insertar(nombre, ap_paterno, ap_materno, correo, password, rol):
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
             pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
             
             # Insertamos ambos apellidos
-            sql = "INSERT INTO usuarios (nombre, `apellido paterno`, apellido_materno, correo, password, Rol) VALUES (%s, %s, %s, %s, %s, '')"
-            val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt)
+            if not ap_materno:
+                ap_materno = ""
+                sql = "INSERT INTO usuarios (nombre, apellido_paterno, apellido_materno, correo, password, Rol) VALUES (%s, %s, '', %s, %s, %s)"
+                val = (nombre, ap_paterno, correo, pass_encrypt, rol)
+            else:
+                sql = "INSERT INTO usuarios (nombre, apellido_paterno, apellido_materno, correo, password, Rol) VALUES (%s, %s, %s, %s, %s, %s)"
+                val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt, rol)
             
             cursor.execute(sql, val)
             conexion.commit()
@@ -58,19 +63,19 @@ class Usuarios:
             return False
 
     @staticmethod
-    def actualizar(id_usuario, nombre, ap_paterno, ap_materno, correo, password):
+    def actualizar(id_usuario, nombre, ap_paterno, ap_materno, correo, password, rol):
         cursor, conexion = conectarBD()
         if cursor is None: return False
         try:
             if not password:
                 # Actualizar SIN contraseña
-                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, apellido_materno=%s, correo=%s WHERE id_usuario=%s"
-                val = (nombre, ap_paterno, ap_materno, correo, id_usuario)
+                sql = "UPDATE usuarios SET nombre=%s, apellido_paterno=%s, apellido_materno=%s, correo=%s, Rol=%s WHERE id_usuario=%s"
+                val = (nombre, ap_paterno, ap_materno, correo, rol, id_usuario)
             else:
                 # Actualizar CON contraseña
                 pass_encrypt = hashlib.sha256(password.encode()).hexdigest()
-                sql = "UPDATE usuarios SET nombre=%s, `apellido paterno`=%s, apellido_materno=%s, correo=%s, password=%s WHERE id_usuario=%s"
-                val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt, id_usuario)
+                sql = "UPDATE usuarios SET nombre=%s, apellido_paterno=%s, apellido_materno=%s, correo=%s, password=%s, Rol=%s WHERE id_usuario=%s"
+                val = (nombre, ap_paterno, ap_materno, correo, pass_encrypt, rol, id_usuario)
 
             cursor.execute(sql, val)
             conexion.commit()

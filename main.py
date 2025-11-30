@@ -14,6 +14,8 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
         super().__init__(master) #Se heredan los atributos que tenga la clase App. 
         self.controlador = controlador #El controlador hereda los metodos de la clase App. Se usara principalmente para la funcion mostrar pantalla. Ej. self.controlador.mostrar_pantalla("interfaz")
+        global su
+        su = False
 
         # --- 1. Configuración de Colores ---
         COLOR_FONDO_APP    = "#B01E2D"
@@ -114,11 +116,11 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
                      command=lambda: self.controlador.mostrar_pantalla("proveedores_main"))
         btn_prov.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
-        btn_usuarios = Button(frame_nav_top, text="Ver usuarios", 
-             bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-             font=f_btn_nav, relief="flat", cursor="hand2",
-             command=lambda: self.controlador.mostrar_pantalla("usuarios_main")) 
-        btn_usuarios.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
+        self.btn_usuarios = Button(frame_nav_top, text="Ver usuarios", 
+            bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
+            font=f_btn_nav, relief="flat", cursor="hand2",
+            command=lambda: self.controlador.mostrar_pantalla("usuarios_main")) 
+        #btn_usuarios.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
         # Botón Cerrar Sesión
         btn_logout = Button(frame_left, text="Cerrar sesión", 
@@ -178,8 +180,19 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         btn_upd.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal)
         """
-    def actualizar_info_usuario(self, nombre):
+    def actualizar_info_usuario(self, nombre, rol):
         self.lbl_nombre.config(text=nombre)
+        s = self.escala # Recuperamos la escala para mantener el padding correcto
+        btn_ipad_y = int(8 * s)
+
+        if rol == "Superadmin":
+            self.lbl_nombre.config(fg="#FFD700")  # Dorado para SuperAdmin
+            # Mostramos el botón
+            self.btn_usuarios.pack(fill=X, pady=int(12*s), ipady=btn_ipad_y)
+        else:
+            self.lbl_nombre.config(fg="#000000")
+            # Ocultamos el botón si no es Superadmin
+            self.btn_usuarios.pack_forget()
 
 
 class App(Tk): #Clase donde va la ventana principal del sistema
@@ -188,6 +201,9 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.title("Sistema de inventario y ventas")
         self.state('zoomed')
         self.geometry("1024x720")
+
+        self.rol_actual = None # Variable para almacenar el rol del usuario actual
+
         self.pantallas = {} #Diccionario que contiene cada interfaz
         """
         Al crear una nueva interfaz, debe importarse y añadirse al diccionario de pantallas.
@@ -246,15 +262,16 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             pantalla.pack_forget()
         self.pantallas[nombre].pack(expand=True, fill="both")
 
-    def ingresar(self, nombre_usuario):
+    def ingresar(self, nombre_usuario, rol):
         # 1. Obtener la referencia al frame del Dashboard
         # Asegúrate que la "key" ("Dashboard") sea exactamente como la definiste al crear los frames
+            self.rol_actual = rol
+            self.crear_menu_atajos()  # Actualiza el menú con el rol correcto   
+
             if "Dashboard" in self.pantallas:
                 dashboard = self.pantallas["Dashboard"]
-                
                 # 2. Mandar el nombre al Dashboard
-                dashboard.actualizar_info_usuario(nombre_usuario)
-                
+                dashboard.actualizar_info_usuario(nombre_usuario, rol)
                 # 3. Cambiar de pantalla
                 self.mostrar_pantalla("Dashboard")
 
@@ -313,11 +330,18 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             prov_menu.add_command(label="➕ Añadir Proveedor", command=lambda: self.mostrar_pantalla("proveedores_insertar"))
 
             # 5. Menú USUARIOS
-            user_menu = Menu(self.menubar, **config_menu)
-            self.menubar.add_cascade(label="  👥 USUARIOS  ", menu=user_menu)
+            if self.rol_actual == "Superadmin":
+                user_menu = Menu(self.menubar, **config_menu)
+                self.menubar.add_cascade(label="  👥 USUARIOS  ", menu=user_menu)
+                user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))
+                user_menu.add_command(label="➕ Crear Nuevo Usuario", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
             
-            user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))
-            user_menu.add_command(label="➕ Crear Nuevo Usuario", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
+            # Si el usuario ya está logueado, forzamos la actualización del menú visualmente
+            if self.master: 
+                try:
+                    self.config(menu=self.menubar)
+                except:
+                    pass
 
     def abrir_ventana_precios(self):
         # Abre la ventana emergente (Toplevel) definida en view/ventas/menu.py

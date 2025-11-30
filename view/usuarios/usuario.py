@@ -107,10 +107,12 @@ class Login(Frame):
         registro = Usuarios.iniciar_sesion(correo,password)
         if registro:
             username = registro[1]
+            rol = registro[7]
+            print("Rol del usuario:", rol)
 
             self.entry_correo.delete(0, END)
             self.entry_pass.delete(0, END)
 
-            self.controlador.ingresar(username)
+            self.controlador.ingresar(username,rol)
         else:
             messagebox.showerror("Error","Usuario o contraseña incorrectos")
