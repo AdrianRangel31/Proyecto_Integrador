@@ -9,14 +9,14 @@ sys.path.append(ruta_raiz)
 
 from model.usuariosCRUD import Usuarios
 from controller.funciones import obtener_imagen
-from view.header import header  # Importamos tu header original
+from view.header import header
 
-# --- CONSTANTES DE ESTILO (Iguales a Proveedores/Productos) ---
-COLOR_FONDO = "#B71C1C"      # Rojo intenso de la imagen
+# --- CONSTANTES DE ESTILO ---
+COLOR_FONDO = "#B71C1C"      
 COLOR_BLANCO = "#FFFFFF"
-COLOR_BOTON_AZUL = "#5DADE2" # Botón Azul (Añadir/Editar)
-COLOR_BOTON_ROJO = "#D32F2F" # Botón Rojo (Eliminar/Salir)
-COLOR_TEXTO_LBL = "#5DADE2"  # Color de etiquetas del formulario
+COLOR_BOTON_AZUL = "#5DADE2" 
+COLOR_BOTON_ROJO = "#D32F2F" 
+COLOR_TEXTO_LBL = "#5DADE2"  
 
 FONT_TITLE = ("Arial", 24, "bold")       
 FONT_LABEL = ("Arial", 12, "bold")       
@@ -25,13 +25,11 @@ FONT_BTN = ("Arial", 12, "bold")
 FONT_TABLE = ("Arial", 11)
 
 class EstiloBase(Frame):
-    """Clase base para mantener el diseño uniforme con el resto del sistema"""
     def __init__(self, master, controlador, titulo):
         super().__init__(master)
         self.controlador = controlador
         self.configure(bg=COLOR_FONDO)
         
-        # --- HEADER COMPARTIDO ---
         self.encabezado = header(self, controlador)
         self.encabezado.pack(side="top", fill="x")
         self.encabezado.titulo = titulo
@@ -43,49 +41,48 @@ class UsuariosMain(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "Gestión de Usuarios")
         
-        # --- MARCO DE LA TABLA (Blanco, centrado) ---
         frame_tabla = Frame(self, bg=COLOR_BLANCO)
         frame_tabla.pack(expand=True, fill="both", padx=40, pady=30)
 
         scroll = Scrollbar(frame_tabla)
         scroll.pack(side="right", fill="y")
 
-        # Columnas según tu imagen y BD
-        cols = ("ID", "Nombre", "Apellidos", "Correo", "Contraseña")
+        # --- AHORA SON MÁS COLUMNAS ---
+        cols = ("ID", "Nombre", "Ap_Paterno", "Ap_Materno", "Correo", "Contraseña")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
-        # --- ESTILOS DE TABLA ---
         style = ttk.Style()
         style.configure("Treeview", font=FONT_TABLE, rowheight=35)
-        style.configure("Treeview.Heading", font=("Arial", 12, "bold"))
+        style.configure("Treeview.Heading", font=("Arial", 11, "bold"))
 
         # Configuración de columnas
         self.tree.heading("ID", text="ID")
-        self.tree.column("ID", width=0, stretch=NO) # Ocultamos el ID
+        self.tree.column("ID", width=0, stretch=NO) 
         
         self.tree.heading("Nombre", text="Nombre")
-        self.tree.column("Nombre", width=150, anchor="center")
+        self.tree.column("Nombre", width=120, anchor="center")
         
-        self.tree.heading("Apellidos", text="Apellidos")
-        self.tree.column("Apellidos", width=150, anchor="center")
+        self.tree.heading("Ap_Paterno", text="Apellido Paterno")
+        self.tree.column("Ap_Paterno", width=120, anchor="center")
+
+        self.tree.heading("Ap_Materno", text="Apellido Materno")
+        self.tree.column("Ap_Materno", width=120, anchor="center")
         
         self.tree.heading("Correo", text="Correo")
-        self.tree.column("Correo", width=200, anchor="center")
+        self.tree.column("Correo", width=180, anchor="center")
         
         self.tree.heading("Contraseña", text="Contraseña")
-        self.tree.column("Contraseña", width=120, anchor="center")
+        self.tree.column("Contraseña", width=100, anchor="center")
         
         self.tree.pack(expand=True, fill="both")
         scroll.config(command=self.tree.yview)
 
-        # Evento: Doble clic para editar
         self.tree.bind("<Double-1>", self.ir_a_actualizar)
 
-        # --- BOTONES INFERIORES ---
+        # BOTONES
         frame_botones = Frame(self, bg=COLOR_FONDO)
         frame_botones.pack(fill="x", pady=20, padx=40)
         
-        # Contenedor para centrar botones
         container_btns = Frame(frame_botones, bg=COLOR_FONDO)
         container_btns.pack(anchor="center")
 
@@ -100,10 +97,7 @@ class UsuariosMain(EstiloBase):
         Button(container_btns, text="Eliminar", bg=COLOR_BOTON_ROJO, 
                command=self.eliminar_usuario, **btn_opts).pack(side="left", padx=10, ipady=5)
 
-        # Cargar datos al iniciar
         self.cargar_datos()
-
-        # Recargar datos automáticamente al mostrar la pantalla
         self.bind("<Map>", self.evento_actualizar_tabla)
 
     def evento_actualizar_tabla(self, event):
@@ -115,9 +109,8 @@ class UsuariosMain(EstiloBase):
         
         usuarios = Usuarios.buscar()
         for u in usuarios:
-            # u = (id, nombre, apellidos, correo, pass)
-            # Mostramos asteriscos en la contraseña
-            fila_visual = (u[0], u[1], u[2], u[3], "********")
+            # u = (id, nombre, pat, mat, correo, pass)
+            fila_visual = (u[0], u[1], u[2], u[3], u[4], "********")
             self.tree.insert("", "end", values=fila_visual)
 
     def ir_a_actualizar(self, event=None):
@@ -161,41 +154,43 @@ class UsuariosInsertar(EstiloBase):
         cuerpo = Frame(self, bg=COLOR_FONDO)
         cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
 
-        # --- FORMULARIO CENTRADO ---
         form_frame = Frame(cuerpo, bg=COLOR_FONDO)
-        form_frame.place(relx=0.25, rely=0.1, relwidth=0.5, relheight=0.8)
+        form_frame.place(relx=0.25, rely=0.05, relwidth=0.5, relheight=0.9)
 
+        # Variables separadas
         self.vars = {
             "nombre": StringVar(),
-            "apellidos": StringVar(),
+            "ap_paterno": StringVar(),
+            "ap_materno": StringVar(),
             "correo": StringVar(),
             "password": StringVar()
         }
 
         campos = [
             ("Nombre", "nombre"),
-            ("Apellidos", "apellidos"),
+            ("Apellido Paterno", "ap_paterno"),
+            ("Apellido Materno", "ap_materno"),
             ("Correo Electrónico", "correo"),
             ("Contraseña", "password")
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_FONDO, fg=COLOR_TEXTO_LBL, 
-                  font=FONT_LABEL, anchor="w").pack(fill="x", pady=(15, 5))
+                  font=FONT_LABEL, anchor="w").pack(fill="x", pady=(10, 2))
             
             if var_key == "password":
-                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT, show="*").pack(fill="x", ipady=5)
+                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT, show="*").pack(fill="x", ipady=4)
             else:
-                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT).pack(fill="x", ipady=5)
+                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT).pack(fill="x", ipady=4)
 
         self.lbl_aviso = Label(form_frame, text="* Deja la contraseña vacía para no cambiarla", 
                                bg=COLOR_FONDO, fg="#FFCCCC", font=("Arial", 10))
         self.lbl_aviso.pack(pady=5)
-        self.lbl_aviso.pack_forget() # Se oculta por defecto
+        self.lbl_aviso.pack_forget()
 
-        # --- BOTONES ---
+        # BOTONES
         btn_frame = Frame(self, bg=COLOR_FONDO)
-        btn_frame.pack(side="bottom", pady=40)
+        btn_frame.pack(side="bottom", pady=30)
         
         btn_opts = {"fg": "white", "font": FONT_BTN, "width": 15, "bd": 0, "cursor": "hand2"}
 
@@ -203,17 +198,18 @@ class UsuariosInsertar(EstiloBase):
         Button(btn_frame, text="CANCELAR", command=self.cancelar, bg="#7F8C8D", **btn_opts).pack(side="left", padx=15, ipady=5)
 
     def preparar_edicion(self, valores):
-        """Método llamado desde UsuariosMain para cargar datos"""
+        # valores = (ID, Nombre, Paterno, Materno, Correo, PassOculta)
         self.modo = "actualizar"
         self.id_usuario_actual = valores[0]
         
         self.vars["nombre"].set(valores[1])
-        self.vars["apellidos"].set(valores[2])
-        self.vars["correo"].set(valores[3])
-        self.vars["password"].set("") # Limpiamos password
+        self.vars["ap_paterno"].set(valores[2])
+        self.vars["ap_materno"].set(valores[3])
+        self.vars["correo"].set(valores[4])
+        self.vars["password"].set("") 
         
         self.encabezado.titulo = "Editar Usuario"
-        self.lbl_aviso.pack() # Mostramos aviso
+        self.lbl_aviso.pack()
 
     def limpiar(self):
         self.modo = "insertar"
@@ -230,25 +226,25 @@ class UsuariosInsertar(EstiloBase):
 
     def guardar(self):
         nom = self.vars["nombre"].get()
-        ape = self.vars["apellidos"].get()
+        pat = self.vars["ap_paterno"].get()
+        mat = self.vars["ap_materno"].get()
         mail = self.vars["correo"].get()
         pwd = self.vars["password"].get()
 
-        if not nom or not ape or not mail:
-            messagebox.showwarning("Datos incompletos", "Nombre, Apellidos y Correo son obligatorios.")
+        if not nom or not pat or not mail:
+            messagebox.showwarning("Datos incompletos", "Nombre, Apellido Paterno y Correo son obligatorios.")
             return
 
         if self.modo == "insertar":
             if not pwd:
                 messagebox.showwarning("Error", "La contraseña es obligatoria para nuevos usuarios.")
                 return
-            if Usuarios.insertar(nom, ape, mail, pwd):
+            if Usuarios.insertar(nom, pat, mat, mail, pwd):
                 messagebox.showinfo("Éxito", "Usuario creado correctamente.")
                 self.finalizar()
         
         elif self.modo == "actualizar":
-            # CRUD maneja si pwd está vacío o no
-            if Usuarios.actualizar(self.id_usuario_actual, nom, ape, mail, pwd):
+            if Usuarios.actualizar(self.id_usuario_actual, nom, pat, mat, mail, pwd):
                 messagebox.showinfo("Éxito", "Usuario actualizado correctamente.")
                 self.finalizar()
 
