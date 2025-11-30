@@ -217,12 +217,16 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
         self.pantallas["proveedores_eliminar"] = ProveedoresEliminar(self, self)
 
+        self.pantallas["menu_crud"] = ventanaMenu(self, self)
+
 
         self.crear_menu_atajos()
         self.mostrar_pantalla("Login")
 
 
     def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+        for pantalla in self.pantallas.values():
+            pantalla.pack_forget()
         if nombre == "Login":
             # Ocultar menú en el login pasando un menú vacío
             self.config(menu=Menu(self))
@@ -242,8 +246,6 @@ class App(Tk): #Clase donde va la ventana principal del sistema
                 self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar",parametro)
             case "productos_insertar":
                 self.pantallas["productos_insertar"] = ProductosInsertar(self, self)
-        for pantalla in self.pantallas.values():
-            pantalla.pack_forget()
         self.pantallas[nombre].pack(expand=True, fill="both")
 
     def ingresar(self, nombre_usuario):
@@ -296,7 +298,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             ventas_menu.add_command(label="➕ Nueva Venta", command=lambda: self.mostrar_pantalla("insertarventas"))
             ventas_menu.add_separator()
         
-            ventas_menu.add_command(label="💲 Modificar Precios (Menú)", command=self.abrir_ventana_precios)
+            ventas_menu.add_command(label="💲 Modificar Precios (Menú)", command=lambda: self.mostrar_pantalla("menu_crud"))
 
             # 3. Menú PRODUCTOS
             prod_menu = Menu(self.menubar, **config_menu)
@@ -319,9 +321,6 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))
             user_menu.add_command(label="➕ Crear Nuevo Usuario", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
 
-    def abrir_ventana_precios(self):
-        # Abre la ventana emergente (Toplevel) definida en view/ventas/menu.py
-        ventanaMenu(self, self)
 
 if __name__ == "__main__":
     app = App()
