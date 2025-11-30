@@ -594,7 +594,7 @@ class insertarVentas(Frame):
         lbl_min.grid(row=0,column=1,pady=5,sticky="e")
         self.spin_minuto.grid(row=0,column=2)
 
-        btn_menu = Button(frame_prod,text="Modificar precios del menú",font=("Arial",16),command=lambda:self.abrir_ventana_crud(),bg="#669BBC",fg="white")
+        btn_menu = Button(frame_prod,text="Modificar precios del menú",font=("Arial",16),command=lambda:self.controlador.mostrar_pantalla("menu_crud"),bg="#669BBC",fg="white")
         btn_menu.grid(row=f+3,column=0,columnspan=2,sticky="nsew",padx=80)
 
         match accion:
@@ -604,7 +604,7 @@ class insertarVentas(Frame):
                 frame_total.grid(row=0,column=1,sticky="nsew",padx=5,pady=50)
                 #frame_prod.grid_propagate(False)
             case "actualizar":
-                head.titulo = f"Actualizar venta {self.id_seleccionado}"
+                head.titulo = "Actualizar venta"
                 frame_prod.grid(row=1,column=0,sticky="nsew",padx=(40,10),pady=5)
                 frame_total.grid(row=1,column=1,sticky="nsew",padx=5,pady=5)
                 body.rowconfigure(1, weight=1)
@@ -798,9 +798,6 @@ class insertarVentas(Frame):
         else:
             messagebox.showinfo("Éxito", "La venta se actualizó correctamente.")
             self.controlador.mostrar_pantalla("mainventas")
-
-    def abrir_ventana_crud(self):
-        crud_menu = ventanaMenu(self,self)
 
 class tabla(ttk.Treeview):
     def __init__(self, parent, columnas, callback_seleccion=None,anchos=None):

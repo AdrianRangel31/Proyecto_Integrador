@@ -2,46 +2,49 @@ import tkinter as tk
 from tkinter import ttk
 from model import ventasCRUD
 from tkinter import messagebox
+from view.header import header
 COLOR_FRAME = "#c60000"
 
-class ventanaMenu(tk.Toplevel):
+class ventanaMenu(tk.Frame):
     def __init__(self,master,controlador):
         super().__init__(master)
         self.controlador = controlador
-        self.title("Modificar menú")
-        self.geometry("800x600")
         self.config(bg=COLOR_FRAME)
-        # Esto impide interactuar con la ventana de Ventas hasta cerrar esta
-        self.grab_set() 
+
+        head = header(self, controlador)
+        head.pack(fill="x")
+        head.titulo = "Modificar precios"
 
         self.producto_var = tk.StringVar()
         self.precio_var = tk.IntVar()
 
         # Frame formulario
-        form_frame = tk.Frame(self)
+        form_frame = tk.Frame(self,bg=COLOR_FRAME)
         form_frame.pack(pady=10)
+        
+        tk.Label(form_frame, text="Producto",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=0, column=0, padx=5, pady=5)
+        tk.Entry(form_frame, textvariable=self.producto_var,width=30,font=("Arial",20)).grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Producto").grid(row=0, column=0, padx=5, pady=5)
-        tk.Entry(form_frame, textvariable=self.producto_var).grid(row=0, column=1, padx=5, pady=5)
-
-        tk.Label(form_frame, text="Precio").grid(row=1, column=0, padx=5, pady=5)
-        tk.Entry(form_frame, textvariable=self.precio_var).grid(row=1, column=1, padx=5, pady=5)
+        tk.Label(form_frame, text="Precio",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=1, column=0, padx=5, pady=5)
+        tk.Entry(form_frame, textvariable=self.precio_var,width=30,font=("Arial",20)).grid(row=1, column=1, padx=5, pady=5)
 
         # Botones
-        btn_frame = tk.Frame(self)
+        btn_frame = tk.Frame(self,bg=COLOR_FRAME)
         btn_frame.pack(pady=10)
 
-        tk.Button(btn_frame, text="Agregar", command=self.agregar_producto).grid(row=0, column=0, padx=5)
-        tk.Button(btn_frame, text="Modificar", command=self.modificar_producto).grid(row=0, column=1, padx=5)
-        tk.Button(btn_frame, text="Eliminar", command=self.eliminar_producto).grid(row=0, column=2, padx=5)
-        tk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos).grid(row=0, column=3, padx=5)
+        tk.Button(btn_frame, text="Agregar", command=self.agregar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=0, padx=5)
+        tk.Button(btn_frame, text="Modificar", command=self.modificar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=1, padx=5)
+        tk.Button(btn_frame, text="Eliminar", command=self.eliminar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=2, padx=5)
+        tk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=3, padx=5)
 
         # Tabla
-        self.tree = ttk.Treeview(self, columns=("ID", "Producto", "Precio"), show="headings")
+        chartframe = tk.Frame(self,width=800,height=400)
+        chartframe.pack(padx=100)
+        self.tree = ttk.Treeview(chartframe, columns=("ID", "Producto", "Precio"), show="headings")
         self.tree.heading("ID", text="ID")
         self.tree.heading("Producto", text="Producto")
         self.tree.heading("Precio", text="Precio")
-        self.tree.pack(fill="both", expand=True)
+        self.tree.pack()
         self.tree.bind("<ButtonRelease-1>", self.seleccionar_producto)
 
         self.mostrar_productos()
