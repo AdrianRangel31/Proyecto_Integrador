@@ -57,9 +57,13 @@ class ventanaMenu(tk.Frame):
 
     def agregar_producto(self):
         if self.producto_var.get() and self.precio_var.get():
-            ventasCRUD.menu.insertar(self.producto_var.get(), self.precio_var.get())
-            self.mostrar_productos()
-            self.limpiar_campos()
+            insertar = ventasCRUD.menu.insertar(self.producto_var.get(), self.precio_var.get())
+            if insertar:
+                messagebox.showinfo("Exito","Se realizó el registro correctamente")
+                self.mostrar_productos()
+                self.limpiar_campos()
+            else: 
+                messagebox.showinfo("Error","Ocurrió un error al realizar el registro")
         else:
             messagebox.showwarning("Atención", "Todos los campos son obligatorios.")
 
@@ -68,9 +72,13 @@ class ventanaMenu(tk.Frame):
         if selected:
             valores = self.tree.item(selected, "values")
             id_menu = valores[0]
-            ventasCRUD.menu.actualizar(id_menu, self.producto_var.get(), self.precio_var.get())
-            self.mostrar_productos()
-            self.limpiar_campos()
+            actualizar = ventasCRUD.menu.actualizar(id_menu, self.producto_var.get(), self.precio_var.get())
+            if actualizar:
+                messagebox.showinfo("Exito","Se actualizó el registro correctamente")
+                self.mostrar_productos()
+                self.limpiar_campos()
+            else:
+                messagebox.showinfo("Error","Ocurrió un error al actualizar el registro")
         else:
             messagebox.showwarning("Atención", "Selecciona una película para modificar.")
 
@@ -79,9 +87,15 @@ class ventanaMenu(tk.Frame):
         if selected:
             valores = self.tree.item(selected, "values")
             id_menu = valores[0]
-            ventasCRUD.menu.eliminar(id_menu)
-            self.mostrar_productos()
-            self.limpiar_campos()
+            eliminar = messagebox.askyesno("Advertencia",f"¿Está seguro de que quiere eliminar este registro?\nID: {id_menu}")
+            if eliminar:
+                eliminar = ventasCRUD.menu.eliminar(id_menu)
+                if eliminar:
+                    messagebox.showinfo("Exito","Se eliminó el registro correctamente")
+                    self.mostrar_productos()
+                    self.limpiar_campos()
+                else:
+                    messagebox.showinfo("Error","Ocurrió un error al eliminar el registro")
         else:
             messagebox.showwarning("Atención", "Selecciona una película para eliminar.")
 

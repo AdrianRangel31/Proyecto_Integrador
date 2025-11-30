@@ -109,13 +109,13 @@ class mainVentas(Frame):
         # ESTILOS
         style = ttk.Style()
         style.theme_use("clam")
-        style.configure("Custom.Treeview", font=("Arial", 16), rowheight=35)
+        style.configure("Custom.Treeview", font=("Arial", 14), rowheight=35)
         style.configure("Custom.Treeview.Heading", background="#4A90E2", foreground="white",
-                        font=("Arial", 18, "bold"), relief="flat")
+                        font=("Arial", 16, "bold"), relief="flat")
         style.map("Custom.Treeview.Heading", background=[("active", "#357ABD")])
         style.configure("Custom.TCombobox", fieldbackground="#4A90E2", background="#4A90E2",
                         foreground="black", bordercolor="#4A90E2", lightcolor="#4A90E2",
-                        arrowcolor="white", font=("Arial", 22))
+                        arrowcolor="white", font=("Arial", 20))
         style.map("Custom.TCombobox", fieldbackground=[("readonly", "#4A90E2")],
                   foreground=[("readonly", "white")], selectbackground=[("readonly", "#4A90E2")],
                   selectforeground=[("readonly", "white")])
@@ -222,7 +222,7 @@ class mainVentas(Frame):
         frameREPORTES.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=20)
         frameREPORTES.pack_propagate(False)
         
-        # ... Contenido de reportes (igual que antes) ...
+        # ... Contenido de reportes ...
         frame_header_rep = Frame(frameREPORTES, bg=COLOR_FRAME)
         frame_header_rep.pack(anchor="nw",padx=(20,0),pady=(30,5))
 
@@ -378,7 +378,7 @@ class mainVentas(Frame):
         plt.savefig(ruta_completa)
         plt.close(fig)
 
-        self.img_grafico_ingresos = obtener_imagen(nombre_archivo, 800, 450)
+        self.img_grafico_ingresos = obtener_imagen(nombre_archivo, 800, 420)
         if self.img_grafico_ingresos:
             self.lbl_imagen_grafico_ingresos.config(image=self.img_grafico_ingresos, text="")
         else:

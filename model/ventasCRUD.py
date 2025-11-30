@@ -263,29 +263,39 @@ class menu:
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-            return []
-        cursor.execute("INSERT INTO productos (nombre, precio) VALUES (%s, %s)",
-                            (nombre, precio))
-        conexion.commit()
-    
+            return False
+        try:
+            cursor.execute("INSERT INTO productos (nombre, precio) VALUES (%s, %s)",
+                                (nombre, precio))
+            conexion.commit()
+            return True
+        except:
+            return False
     @staticmethod
     def actualizar(id, nombre, precio):
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-            return []
-        cursor.execute("UPDATE productos SET nombre=%s, precio=%s WHERE id_menu=%s",
-                            (nombre, precio, id))
-        conexion.commit()
-    
+            return False
+        try:       
+            cursor.execute("UPDATE productos SET nombre=%s, precio=%s WHERE id_menu=%s",
+                                (nombre, precio, id))
+            conexion.commit()
+            return True
+        except:    
+            return False
     @staticmethod
     def eliminar(id):
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
-            return []
-        cursor.execute("DELETE FROM productos WHERE id_menu=%s", (id,))
-        conexion.commit()
+            return False
+        try:
+            cursor.execute("DELETE FROM productos WHERE id_menu=%s", (id,))
+            conexion.commit()
+            return True
+        except:
+            return False
 
 # --- CLASE PARA REPORTES ---
 class reportes:
