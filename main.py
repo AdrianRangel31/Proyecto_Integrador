@@ -14,8 +14,8 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
     def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
         super().__init__(master) #Se heredan los atributos que tenga la clase App. 
         self.controlador = controlador #El controlador hereda los metodos de la clase App. Se usara principalmente para la funcion mostrar pantalla. Ej. self.controlador.mostrar_pantalla("interfaz")
-        global su
-        su = False
+        global admin
+        admin = False
 
         # --- 1. Configuración de Colores ---
         COLOR_FONDO_APP    = "#B01E2D"
@@ -185,13 +185,13 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         s = self.escala # Recuperamos la escala para mantener el padding correcto
         btn_ipad_y = int(8 * s)
 
-        if rol == "Superadmin":
-            self.lbl_nombre.config(fg="#FFD700")  # Dorado para SuperAdmin
+        if rol == "Admin":
+            self.lbl_nombre.config(fg="#FFD700")  # Dorado para Admin
             # Mostramos el botón
             self.btn_usuarios.pack(fill=X, pady=int(12*s), ipady=btn_ipad_y)
         else:
             self.lbl_nombre.config(fg="#000000")
-            # Ocultamos el botón si no es Superadmin
+            # Ocultamos el botón si no es Admin
             self.btn_usuarios.pack_forget()
 
 
@@ -332,7 +332,7 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             prov_menu.add_command(label="➕ Añadir Proveedor", command=lambda: self.mostrar_pantalla("proveedores_insertar"))
 
             # 5. Menú USUARIOS
-            if self.rol_actual == "Superadmin":
+            if self.rol_actual == "Admin":
                 user_menu = Menu(self.menubar, **config_menu)
                 self.menubar.add_cascade(label="  👥 USUARIOS  ", menu=user_menu)
                 user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))

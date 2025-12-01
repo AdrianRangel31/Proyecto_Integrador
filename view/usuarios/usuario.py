@@ -108,7 +108,7 @@ class Login(Frame):
         if registro:
             username = registro[1]
             rol = registro[7]
-            print("Rol del usuario:", rol)
+            #print("Rol del usuario:", rol)
 
             self.entry_correo.delete(0, END)
             self.entry_pass.delete(0, END)
