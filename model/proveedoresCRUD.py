@@ -10,22 +10,21 @@ class Proveedores:
             messagebox.showinfo("Aviso", "No se pudo conectar con la base de datos")
             return []
 
-        # --- CORRECCIÓN: Columnas exactas según tu diagrama ---
-        cols = "id_proveedor, nombre, contacto, telefono, direccion"
+        # --- ACTUALIZADO: Columnas correctas según tu BD ---
+        cols = "id_proveedor, nombre_empresa, nombre_contacto, telefono, direccion"
         sql = f"SELECT {cols} FROM proveedores"
         
         if campo != "Todo":
             match valor:
-                case "Nombre A-Z":
-                    sql += " ORDER BY nombre ASC"
-                case "Nombre Z-A":
-                    sql += " ORDER BY nombre DESC"
+                case "Empresa A-Z": 
+                    sql += " ORDER BY nombre_empresa ASC"
+                case "Empresa Z-A":
+                    sql += " ORDER BY nombre_empresa DESC"
                 case _:
-                    # Filtros actualizados a tus columnas reales
                     filtros = {
                         "ID": "id_proveedor",
-                        "Nombre": "nombre",
-                        "Contacto": "contacto",
+                        "Empresa": "nombre_empresa",    
+                        "Contacto": "nombre_contacto", 
                         "Telefono": "telefono", 
                         "Direccion": "direccion"
                     }
@@ -42,15 +41,15 @@ class Proveedores:
             return []
 
     @staticmethod
-    def insertar(nombre, contacto, telefono, direccion):
+    def insertar(nombre_empresa, nombre_contacto, telefono, direccion):
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            # Insertamos en las 4 columnas de datos (sin correo)
+            # Insertamos usando nombre_empresa y nombre_contacto
             sql = """INSERT INTO proveedores 
-                    (nombre, contacto, telefono, direccion) 
+                    (nombre_empresa, nombre_contacto, telefono, direccion) 
                     VALUES (%s, %s, %s, %s)"""
-            val = (nombre, contacto, telefono, direccion)
+            val = (nombre_empresa, nombre_contacto, telefono, direccion)
             cursor.execute(sql, val)
             conexion.commit()
             desconectarBD(conexion)
@@ -60,15 +59,15 @@ class Proveedores:
             return False
 
     @staticmethod
-    def actualizar(id_prov, nombre, contacto, telefono, direccion):
+    def actualizar(id_prov, nombre_empresa, nombre_contacto, telefono, direccion):
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            # Actualizamos las 4 columnas (sin correo)
+            # Actualizamos usando los nombres nuevos
             sql = """UPDATE proveedores SET 
-                    nombre=%s, contacto=%s, telefono=%s, direccion=%s 
+                    nombre_empresa=%s, nombre_contacto=%s, telefono=%s, direccion=%s 
                     WHERE id_proveedor=%s"""
-            val = (nombre, contacto, telefono, direccion, id_prov)
+            val = (nombre_empresa, nombre_contacto, telefono, direccion, id_prov)
             cursor.execute(sql, val)
             conexion.commit()
             desconectarBD(conexion)

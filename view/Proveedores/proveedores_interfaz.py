@@ -3,7 +3,11 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import os
 import sys
-from view.header import *
+try:
+    from view.header import *
+except ImportError:
+    pass
+
 # --- IMPORTS DE RUTAS ---
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(ruta_raiz)
@@ -18,11 +22,12 @@ COLOR_BOTON = "#5DADE2"
 COLOR_TEXTO_LBL = "#5DADE2"
 COLOR_BLANCO = "#FFFFFF"
 
-FONT_TITLE = ("Arial", 24, "bold")       
-FONT_LABEL = ("Arial", 12, "bold")       
-FONT_INPUT = ("Arial", 12)               
-FONT_BTN = ("Arial", 12, "bold")        
-FONT_TABLE = ("Arial", 11)               
+# --- FUENTES (Mantenemos las grandes) ---
+FONT_TITLE = ("Arial", 28, "bold")       
+FONT_LABEL = ("Arial", 14, "bold")       
+FONT_INPUT = ("Arial", 14)               
+FONT_BTN = ("Arial", 14, "bold")         
+FONT_TABLE = ("Arial", 13)               
 
 class EstiloBase(Frame):
     def __init__(self, master, controlador, titulo):
@@ -39,7 +44,7 @@ class EstiloBase(Frame):
         if self.img_logo_small:
             Label(header, image=self.img_logo_small, bg=COLOR_HEADER).pack(side="left", padx=15, pady=5)
         
-        Button(header, text="🏠", font=("Arial", 24), bg=COLOR_HEADER, fg="white", 
+        Button(header, text="🏠", font=("Arial", 26), bg=COLOR_HEADER, fg="white", 
             bd=0, activebackground=COLOR_HEADER, cursor="hand2",
             command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
 
@@ -59,16 +64,16 @@ class ProveedoresMain(EstiloBase):
         scroll = Scrollbar(frame_tabla)
         scroll.pack(side="right", fill="y")
 
-        # --- CORRECCIÓN: Columnas exactas del diagrama ---
-        cols = ("ID", "Nombre", "Contacto", "Telefono", "Direccion")
+        # Columnas actualizadas
+        cols = ("ID", "Empresa", "Contacto", "Telefono", "Direccion")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
         # --- ESTILOS DE TABLA ---
         style = ttk.Style()
-        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
-        style.configure("Treeview.Heading", font=("Arial", 12, "bold"))
+        style.configure("Treeview", font=FONT_TABLE, rowheight=45) 
+        style.configure("Treeview.Heading", font=("Arial", 14, "bold"))
 
-        anchos = [50, 200, 150, 120, 250]
+        anchos = [60, 220, 160, 140, 280]
         for col, ancho in zip(cols, anchos):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=ancho, anchor="center" if col == "ID" else "w")
@@ -79,12 +84,17 @@ class ProveedoresMain(EstiloBase):
         frame_botones = Frame(self, bg=COLOR_FONDO)
         frame_botones.pack(fill="x", pady=20, padx=40)
 
-        btn_opts = {"bg": COLOR_BOTON, "fg": "white", "font": FONT_BTN, "width": 15, "bd": 0, "cursor": "hand2"}
+        # Botones gorditos
+        btn_opts = {
+            "bg": COLOR_BOTON, "fg": "white", 
+            "font": FONT_BTN, "width": 18,      
+            "bd": 0, "cursor": "hand2"
+        }
 
-        Button(frame_botones, text="Añadir", command=lambda: controlador.mostrar_pantalla("proveedores_insertar"), **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="Actualizar", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="Eliminar", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="Refrescar", command=self.cargar_datos, **btn_opts).pack(side="right", padx=10)
+        Button(frame_botones, text="Añadir", command=lambda: controlador.mostrar_pantalla("proveedores_insertar"), **btn_opts).pack(side="left", padx=15, ipady=10)
+        Button(frame_botones, text="Actualizar", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=15, ipady=10)
+        Button(frame_botones, text="Eliminar", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=15, ipady=10)
+        Button(frame_botones, text="Refrescar", command=self.cargar_datos, **btn_opts).pack(side="right", padx=15, ipady=10)
 
         self.cargar_datos()
 
@@ -129,9 +139,8 @@ class ProveedoresInsertar(EstiloBase):
         cuerpo = Frame(self, bg=COLOR_FONDO)
         cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
 
-        # Formulario centrado
         form_frame = Frame(cuerpo, bg=COLOR_FONDO)
-        form_frame.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.8)
+        form_frame.place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.9)
 
         self.vars = {
             "nombre": StringVar(), 
@@ -140,7 +149,6 @@ class ProveedoresInsertar(EstiloBase):
             "direccion": StringVar()
         }
 
-        # --- CORRECCIÓN: Campos exactos del diagrama ---
         campos = [
             ("Nombre de la Empresa", "nombre"), 
             ("Nombre del Contacto", "contacto"),
@@ -150,18 +158,19 @@ class ProveedoresInsertar(EstiloBase):
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                font=FONT_LABEL, width=40, anchor="w", padx=10).pack(pady=(15, 5), anchor="w")
+                font=FONT_LABEL, width=40, anchor="w", padx=10).pack(pady=(10, 5), anchor="w")
             
-            Entry(form_frame, textvariable=self.vars[var_key], width=45, font=FONT_INPUT).pack(pady=0, ipady=5, anchor="w", padx=5)
+            Entry(form_frame, textvariable=self.vars[var_key], width=45, font=FONT_INPUT).pack(pady=0, ipady=12, anchor="w", padx=5)
 
-        # --- BOTONES ---
         btn_frame = Frame(self, bg=COLOR_FONDO)
-        btn_frame.pack(side="bottom", pady=40)
+        btn_frame.pack(side="bottom", pady=30)
         
+        btn_opts = {"font": FONT_BTN, "width": 18, "bd": 0, "cursor": "hand2"}
+
         txt_confirmar = "GUARDAR" if modo == "insertar" else "ACTUALIZAR"
-        Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
-        Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
-        Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("proveedores_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", **btn_opts).pack(side="left", padx=15, ipady=10)
+        Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", **btn_opts).pack(side="left", padx=15, ipady=10)
+        Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("proveedores_main"), bg=COLOR_BOTON, fg="white", **btn_opts).pack(side="left", padx=15, ipady=10)
 
     def limpiar(self):
         for key in self.vars:
@@ -169,10 +178,9 @@ class ProveedoresInsertar(EstiloBase):
 
     def guardar(self):
         if not self.vars["nombre"].get():
-            messagebox.showwarning("Error", "El nombre es obligatorio")
+            messagebox.showwarning("Error", "El nombre de la empresa es obligatorio")
             return
 
-        # Enviamos los 4 datos (Nombre, Contacto, Tel, Dir)
         datos = [
             self.vars["nombre"].get(), 
             self.vars["contacto"].get(),
@@ -197,8 +205,7 @@ class ProveedoresActualizar(ProveedoresInsertar):
         super().__init__(master, controlador, modo="actualizar")
 
     def cargar_datos_formulario(self, valores):
-        # Mapeo de columnas Treeview -> Formulario
-        # Orden: ID (0), Nombre (1), Contacto (2), Telefono (3), Direccion (4)
+        # valores orden: ID, Empresa, Contacto, Tel, Dir
         self.id_proveedor_actual = valores[0]
         self.vars["nombre"].set(valores[1])
         self.vars["contacto"].set(valores[2])
@@ -215,19 +222,21 @@ class ProveedoresEliminar(EstiloBase):
         cuerpo.pack(expand=True, fill="both", padx=50, pady=50)
 
         Label(cuerpo, text="¿Estás seguro que deseas eliminar este proveedor?", 
-            bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
+            bg=COLOR_FONDO, fg="white", font=("Arial", 20, "bold")).pack(pady=30)
 
-        self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 16), padx=20, pady=20)
+        self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 18), padx=20, pady=20)
         self.lbl_info.pack(pady=10, fill="x")
 
         btn_frame = Frame(cuerpo, bg=COLOR_FONDO)
         btn_frame.pack(pady=40)
 
-        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=FONT_BTN,
-            command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
+        btn_opts = {"font": FONT_BTN, "width": 20, "bd": 0, "cursor": "hand2"}
+
+        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", 
+            command=self.confirmar_eliminar, **btn_opts).pack(side="left", padx=20, ipady=10)
         
-        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=FONT_BTN,
-            command=lambda: controlador.mostrar_pantalla("proveedores_main"), cursor="hand2").pack(side="left", padx=20)
+        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", 
+            command=lambda: controlador.mostrar_pantalla("proveedores_main"), **btn_opts).pack(side="left", padx=20, ipady=10)
 
     def cargar_datos_vista(self, valores):
         self.id_a_eliminar = valores[0]
