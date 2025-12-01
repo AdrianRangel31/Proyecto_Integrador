@@ -180,10 +180,23 @@ class UsuariosInsertar(EstiloBase):
             Label(form_frame, text=lbl_text, bg=COLOR_FONDO, fg=COLOR_TEXTO_LBL, 
                   font=FONT_LABEL, anchor="w").pack(fill="x", pady=(10, 2))
             
+            # Caso 1: Campo de contraseña (oculto)
             if var_key == "password":
-                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT, show="*").pack(fill="x", ipady=4)
+                Entry(form_frame, textvariable=self.vars[var_key], width=30, 
+                      font=FONT_INPUT, show="*").pack(fill="x", ipady=4)
+            
+            # Caso 2: Campo de Rol (AHORA ES UN COMBOBOX)
+            elif var_key == "rol":
+                combo = ttk.Combobox(form_frame, textvariable=self.vars[var_key], 
+                                     values=["Admin", "Colaborador"], # Opciones solicitadas
+                                     state="readonly", # Evita que escriban otra cosa
+                                     font=FONT_INPUT)
+                combo.pack(fill="x", ipady=4)
+            
+            # Caso 3: Resto de campos (texto normal)
             else:
-                Entry(form_frame, textvariable=self.vars[var_key], width=30, font=FONT_INPUT).pack(fill="x", ipady=4)
+                Entry(form_frame, textvariable=self.vars[var_key], width=30, 
+                      font=FONT_INPUT).pack(fill="x", ipady=4)
 
         self.lbl_aviso = Label(form_frame, text="* Deja la contraseña vacía para no cambiarla", 
                                bg=COLOR_FONDO, fg="#FFCCCC", font=("Arial", 10))
@@ -200,7 +213,7 @@ class UsuariosInsertar(EstiloBase):
         Button(btn_frame, text="CANCELAR", command=self.cancelar, bg="#7F8C8D", **btn_opts).pack(side="left", padx=15, ipady=5)
 
     def preparar_edicion(self, valores):
-        # valores = (ID, Nombre, Paterno, Materno, Correo, PassOculta)
+        # valores = (ID, Nombre, Paterno, Materno, Correo, Rol)
         self.modo = "actualizar"
         self.id_usuario_actual = valores[0]
         
@@ -209,7 +222,7 @@ class UsuariosInsertar(EstiloBase):
         self.vars["ap_materno"].set(valores[3])
         self.vars["correo"].set(valores[4].strip())
         self.vars["password"].set("")
-        #self.vars["rol"].set(valores[7])
+        self.vars["rol"].set(valores[5])
         
         self.encabezado.titulo = "Editar Usuario"
         self.lbl_aviso.pack()
