@@ -159,27 +159,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         area_atajos = Frame(frame_right, bg=COLOR_BLANCO)
         area_atajos.pack(fill=X, pady=(s(10), 0))
 
-        Label(area_atajos, text="Atajos", bg=COLOR_BLANCO, 
-              fg=COLOR_TEXTO_NEGRO, font=f_label_sc).pack(pady=(0, s(2)))
 
-        #self.icon_stats = obtener_imagen("icon_stats.png", w_icon, h_icon)
-        #self.icon_refresh = obtener_imagen("icon_refresh.png", w_icon, h_icon)
-
-        margen_interno_horizontal = s(20) # Espacio dentro del botón a los lados del texto
-
-        btn_reg = Button(area_atajos, text="  Registrar ventas",
-                         compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                         font=f_btn_sc, relief="flat", cursor="hand2",
-                         command=lambda: self.controlador.mostrar_pantalla("insertarventas"))
-
-        btn_reg.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal) 
-        """         
-        btn_upd = Button(area_atajos, text="Ver informes de venta",
-                         compound=LEFT, bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
-                         font=f_btn_sc, relief="flat", cursor="hand2")
-
-        btn_upd.pack(pady=s(8), ipady=btn_ipad_y, ipadx=margen_interno_horizontal)
-        """
     def actualizar_info_usuario(self, nombre, rol):
         self.lbl_nombre.config(text=nombre)
         s = self.escala # Recuperamos la escala para mantener el padding correcto
