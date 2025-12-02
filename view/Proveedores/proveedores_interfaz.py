@@ -4,9 +4,10 @@ from PIL import Image, ImageTk
 import os
 import sys
 try:
-    from view.header import *
+    from view.header import header 
 except ImportError:
-    pass
+    from tkinter import Frame as header 
+
 
 # --- IMPORTS DE RUTAS ---
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -35,20 +36,12 @@ class EstiloBase(Frame):
         self.controlador = controlador
         self.configure(bg=COLOR_FONDO)
         
-        # --- ENCABEZADO ---
-        header = Frame(self, bg=COLOR_HEADER, height=110)
-        header.pack(fill="x", side="top")
-        header.pack_propagate(False)
-
-        self.img_logo_small = obtener_imagen("logo.png", 90, 90)
-        if self.img_logo_small:
-            Label(header, image=self.img_logo_small, bg=COLOR_HEADER).pack(side="left", padx=15, pady=5)
-        
-        Button(header, text="🏠", font=("Arial", 26), bg=COLOR_HEADER, fg="white", 
-            bd=0, activebackground=COLOR_HEADER, cursor="hand2",
-            command=lambda: controlador.mostrar_pantalla("Dashboard")).pack(side="left", padx=10)
-
-        Label(header, text=titulo, font=FONT_TITLE, bg=COLOR_HEADER, fg="white").pack(side="left", padx=20)
+        try:
+            self.encabezado = header(self, controlador)
+            self.encabezado.pack(side="top", fill="x")
+            self.encabezado.titulo = titulo
+        except Exception:
+            Label(self, text=titulo, bg=COLOR_FONDO, fg="white", font=("Arial", 24)).pack(pady=10)
 
 
 # ==========================================================
@@ -70,9 +63,12 @@ class ProveedoresMain(EstiloBase):
         
         # --- ESTILOS DE TABLA ---
         style = ttk.Style()
-        style.configure("Treeview", font=FONT_TABLE, rowheight=45) 
-        style.configure("Treeview.Heading", font=("Arial", 14, "bold"))
-
+        style.theme_use("clam")
+        style.configure("Treeview", font=("Arial", 14), rowheight=35, background="white", fieldbackground="white")
+        style.configure("Treeview.Heading", background="#4A90E2", foreground="white",
+                        font=("Arial", 16, "bold"), relief="flat")
+        style.map("Treeview.Heading", background=[("active", "#357ABD")])
+        # --------------------------
         anchos = [60, 220, 160, 140, 280]
         for col, ancho in zip(cols, anchos):
             self.tree.heading(col, text=col)

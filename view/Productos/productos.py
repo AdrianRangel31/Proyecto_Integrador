@@ -67,9 +67,14 @@ class ProductosMain(EstiloBase):
         cols = ("ID", "Nombre", "Desc.", "Cant.", "Unidad", "Precio", "Caducidad", "Prov.")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
+        # --- ESTILO  TABLA  ---
         style = ttk.Style()
-        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
-        style.configure("Treeview.Heading", font=("Arial", 13, "bold"))
+        style.theme_use("clam")
+        style.configure("Treeview", font=("Arial", 14), rowheight=35, background="white", fieldbackground="white")
+        style.configure("Treeview.Heading", background="#4A90E2", foreground="white",
+                        font=("Arial", 16, "bold"), relief="flat")
+        style.map("Treeview.Heading", background=[("active", "#357ABD")])
+        # --------------------------
 
         anchos = [50, 200, 200, 80, 80, 100, 120, 80]
         for col, ancho in zip(cols, anchos):

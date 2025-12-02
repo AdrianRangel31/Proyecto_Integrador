@@ -51,9 +51,14 @@ class UsuariosMain(EstiloBase):
         cols = ("ID", "Nombre", "Ap_Paterno", "Ap_Materno", "Correo", "Rol")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
+        # --- ESTILO TABLA ---
         style = ttk.Style()
-        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
-        style.configure("Treeview.Heading", font=("Arial", 11, "bold"))
+        style.theme_use("clam")
+        style.configure("Treeview", font=("Arial", 14), rowheight=35, background="white", fieldbackground="white")
+        style.configure("Treeview.Heading", background="#4A90E2", foreground="white",
+                        font=("Arial", 16, "bold"), relief="flat")
+        style.map("Treeview.Heading", background=[("active", "#357ABD")])
+        # --------------------------
 
         # Configuración de columnas
         self.tree.heading("ID", text="ID")
