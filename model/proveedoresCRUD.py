@@ -81,10 +81,28 @@ class Proveedores:
         cursor, conexion = conectarBD()
         if cursor == None: return False
         try:
-            cursor.execute(f"DELETE FROM proveedores WHERE id_proveedor = {id_prov}")
+            # 1. VERIFICACIÓN DE SEGURIDAD:
+           
+            check_sql = "SELECT COUNT(*) FROM ingredientes WHERE id_proveedor = %s"
+            cursor.execute(check_sql, (id_prov,))
+            cantidad_productos = cursor.fetchone()[0]
+
+            if cantidad_productos > 0:
+                messagebox.showwarning(
+                    "No se puede eliminar", 
+                    f"Este proveedor tiene {cantidad_productos} ingrediente(s) registrados.\n\n"
+                    "Para eliminarlo, primero debes eliminar o reasignar sus productos en el menú de Ingredientes."
+                )
+                desconectarBD(conexion)
+                return False
+
+            sql = "DELETE FROM proveedores WHERE id_proveedor = %s"
+            cursor.execute(sql, (id_prov,))
             conexion.commit()
             desconectarBD(conexion)
             return True
+
         except Exception as e:
             messagebox.showerror("Error", f"No se puede eliminar: {e}")
+            if conexion: desconectarBD(conexion)
             return False
