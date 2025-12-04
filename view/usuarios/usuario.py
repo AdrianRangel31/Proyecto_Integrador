@@ -44,7 +44,7 @@ class Login(Frame):
         p_label_y = int(10 * escala)
         p_entry_y = int(5 * escala)
         p_entry_x = int(10 * escala)
-        p_boton_y = int(20 * escala)
+        p_boton_y = int(10 * escala)
 
         self.imagen_fondo = obtener_imagen("fondo.jpg", ancho_ventana, alto_ventana) 
         fondo_label = Label(self, image=self.imagen_fondo)
@@ -89,8 +89,12 @@ class Login(Frame):
         self.entry_pass.pack(pady=p_entry_y, padx=p_entry_x, fill="x")
 
         boton_iniciar = Button(frame_derecha, text="Iniciar sesión", 
-                               font=font_boton, bg="#333", fg="white", command= self.validar_campos) 
+                               font=font_boton, bg="#333", fg="white", command=self.validar_campos) 
         boton_iniciar.pack(pady=p_boton_y, fill="x", padx=p_entry_x)
+
+        boton_cerrar = Button(frame_derecha, text="Cerrar", 
+                              font=font_boton, bg="#777", fg="white", command=self.controlador.quit)
+        boton_cerrar.pack(pady=p_boton_y, fill="x", padx=p_entry_x)
 
     def validar_campos(self):
         
