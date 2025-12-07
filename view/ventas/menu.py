@@ -80,7 +80,7 @@ class ventanaMenu(tk.Frame):
             else:
                 messagebox.showinfo("Error","Ocurrió un error al actualizar el registro")
         else:
-            messagebox.showwarning("Atención", "Selecciona una película para modificar.")
+            messagebox.showwarning("Atención", "Selecciona un registro para modificar.")
 
     def eliminar_producto(self):
         selected = self.tree.focus()
@@ -95,9 +95,9 @@ class ventanaMenu(tk.Frame):
                     self.mostrar_productos()
                     self.limpiar_campos()
                 else:
-                    messagebox.showinfo("Error","Ocurrió un error al eliminar el registro")
+                    messagebox.showinfo("Error","Ocurrió un error al eliminar el registro\nNo es posible eliminar un registro si en detalle de venta hay registros relacionados.")
         else:
-            messagebox.showwarning("Atención", "Selecciona una película para eliminar.")
+            messagebox.showwarning("Atención", "Selecciona un registro para eliminar.")
 
     def seleccionar_producto(self, event):
         selected = self.tree.focus()

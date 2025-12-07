@@ -19,7 +19,7 @@ class mainVentas(Frame):
         head = header(self, controlador)
         head.pack(fill="x")
         head.titulo = "Ventas"
-
+        self.id_seleccionado = None
         # --- SCROLLABLE BODY ---
         container = Frame(self)
         container.pack(fill="both", expand=True)
@@ -72,7 +72,6 @@ class mainVentas(Frame):
         self.bind("<Destroy>", _unbind_mouse)
         # -------------------
 
-        self.id_seleccionado = 0
         
         # --- CORRECCIÓN RESPONSIVE ---
         # 'uniform="cols"' fuerza a que ambas columnas tengan el mismo ancho pixel a pixel
@@ -104,7 +103,7 @@ class mainVentas(Frame):
         # Posicion inicial (se ajustará en responsive_layout)
         self.lbl_filtrar.grid(row=0, column=0, sticky="w")
 
-        columnas = ["Todo","ID", "Fecha", "Total"]
+        columnas = ["Todo","ID", "Fecha","Hora", "Total"]
 
         # ESTILOS
         style = ttk.Style()
@@ -183,7 +182,7 @@ class mainVentas(Frame):
 
         self.btn_actualizar = Button(self.frame_botones, text="Actualizar", font=("Arial", 16, "bold"), width=15,
                                 fg="white", bg="#86B7D6",
-                                command=lambda: self.controlador.mostrar_pantalla("actualizarventas",self.id_seleccionado))
+                                command=lambda: self.validar_id())
         self.btn_actualizar.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
         self.btn_eliminar = Button(self.frame_botones, text="Eliminar", font=("Arial", 16, "bold"), width=15,
@@ -422,6 +421,12 @@ class mainVentas(Frame):
             self.tabla2.delete(row)
         for fila in registros:
             self.tabla2.insert("", "end", values=fila)
+
+    def validar_id(self):
+        if self.id_seleccionado == None:
+            messagebox.showwarning("Advertencia","Seleccione un registro para continuar")
+        else:
+            self.controlador.mostrar_pantalla("actualizarventas",self.id_seleccionado)
 
     def actualizar_id(self, id_recibido):
         self.id_seleccionado = id_recibido

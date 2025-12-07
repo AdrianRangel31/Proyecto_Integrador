@@ -236,9 +236,6 @@ class App(Tk): #Clase donde va la ventana principal del sistema
             case "insertarventas":
                 self.pantallas["insertarventas"] = insertarVentas(self,self,"agregar")
             case "actualizarventas":
-                if parametro == 0:
-                    messagebox.showwarning("Advertencia","Seleccione un registro para continuar")
-                    return
                 self.pantallas["actualizarventas"] = insertarVentas(self,self,"actualizar",parametro)
             case "productos_insertar":
                 self.pantallas["productos_insertar"] = ProductosInsertar(self, self)
