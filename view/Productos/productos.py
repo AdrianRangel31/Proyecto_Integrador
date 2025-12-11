@@ -1,14 +1,16 @@
 from tkinter import *
-from tkinter import ttk, messagebox, Toplevel
+from tkinter import ttk
+from tkinter import messagebox
+from tkinter import Toplevel
+from tkinter import filedialog 
 import os
 import sys
 import subprocess 
 
-# --- INTENTO DE IMPORTAR TKCALENDAR ---
+# --- IMPORTAR TKCALENDAR ---
 try:
     from tkcalendar import DateEntry
 except ImportError:
-    messagebox.showerror("Error Faltante", "Necesitas instalar tkcalendar.\nEjecuta en consola: pip install tkcalendar")
     from tkinter import Entry as DateEntry 
 
 # --- IMPORTS DE RUTAS ---
@@ -67,14 +69,9 @@ class ProductosMain(EstiloBase):
         cols = ("ID", "Nombre", "Desc.", "Cant.", "Unidad", "Precio", "Caducidad", "Prov.")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
-        # --- ESTILO  TABLA  ---
         style = ttk.Style()
-        style.theme_use("clam")
-        style.configure("Treeview", font=("Arial", 14), rowheight=35, background="white", fieldbackground="white")
-        style.configure("Treeview.Heading", background="#4A90E2", foreground="white",
-                        font=("Arial", 16, "bold"), relief="flat")
-        style.map("Treeview.Heading", background=[("active", "#357ABD")])
-        # --------------------------
+        style.configure("Treeview", font=FONT_TABLE, rowheight=35)
+        style.configure("Treeview.Heading", font=("Arial", 13, "bold"))
 
         anchos = [50, 200, 200, 80, 80, 100, 120, 80]
         for col, ancho in zip(cols, anchos):
@@ -142,34 +139,49 @@ class ProductosMain(EstiloBase):
 
     def generar_pdf_reporte(self, tipo):
         datos = []
-        nombre_pdf = ""
+        nombre_default = ""
         titulo = ""
+        
+        # 1. Configurar datos según selección
         if tipo == "Completo":
             datos = Productos.buscar()
-            nombre_pdf = "Reporte_Ingredientes_Completo.pdf"
+            nombre_default = "Reporte_Ingredientes_Completo.pdf"
             titulo = "REPORTE DE INGREDIENTES GENERAL"
         elif tipo == "Bajo":
             datos = Productos.buscar("Stock Bajo") 
-            nombre_pdf = "Reporte_Stock_Bajo.pdf"
+            nombre_default = "Reporte_Stock_Bajo.pdf"
             titulo = "INGREDIENTES CON STOCK BAJO"
         elif tipo == "Caducar":
             datos = Productos.buscar("Por Caducar")
-            nombre_pdf = "Reporte_Caducidad.pdf"
+            nombre_default = "Reporte_Caducidad.pdf"
             titulo = "INGREDIENTES PRÓXIMOS A CADUCAR"
 
         if not datos:
             messagebox.showinfo("Aviso", "No hay datos para generar este reporte.")
             return
 
+        # 2. ELEGIR DÓNDE GUARDAR
+        ruta_guardado = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("Archivos PDF", "*.pdf")],
+            initialfile=nombre_default,
+            title="Guardar Reporte Como"
+        )
+
+        if not ruta_guardado:
+            return
+
         try:
-            pdf = GeneradorPDF(nombre_pdf, titulo)
+            # 3. Generar PDF en la ruta elegida
+            pdf = GeneradorPDF(ruta_guardado, titulo)
             pdf.generar_encabezado()
             pdf.generar_tabla(datos)
             pdf.guardar()
-            respuesta = messagebox.askyesno("Reporte Generado", f"Se creó '{nombre_pdf}'. ¿Deseas abrirlo ahora?")
+            
+            respuesta = messagebox.askyesno("Reporte Generado", f"Se guardó correctamente en:\n{ruta_guardado}\n\n¿Deseas abrirlo ahora?")
             if respuesta:
-                if sys.platform == "win32": os.startfile(nombre_pdf)
-                else: subprocess.call(["xdg-open", nombre_pdf])
+                if sys.platform == "win32": os.startfile(ruta_guardado)
+                else: subprocess.call(["xdg-open", ruta_guardado])
         except Exception as e:
             messagebox.showerror("Error", f"Error reporte: {e}")
 
@@ -197,13 +209,13 @@ class ProductosInsertar(EstiloBase):
         campos = [
             ("Nombre del Ingrediente", "nombre"), ("Cantidad", "cantidad"),
             ("Unidad", "unidad"), ("Precio", "precio"),
-            ("Descripcion", "desc"), ("Fecha Caducidad", "caducidad"), # Etiqueta simplificada
+            ("Descripcion", "desc"), ("Fecha Caducidad", "caducidad"),
             ("ID Proveedor (Selecciona de la tabla ➜)", "prov")
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                    font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
+                  font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
             
             # --- IMPLEMENTACIÓN DEL CALENDARIO ---
             if var_key == "caducidad":
@@ -276,7 +288,7 @@ class ProductosInsertar(EstiloBase):
         except ValueError: prec = 0.0
         
         datos = [self.vars["nombre"].get(), self.vars["desc"].get(), cant,
-                    self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
+                 self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
         
         if self.modo == "insertar":
             if Productos.insertar(*datos):
