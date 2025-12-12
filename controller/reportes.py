@@ -4,7 +4,6 @@ from reportlab.lib.colors import HexColor
 from datetime import datetime
 import os
 
-# Ajusta esta ruta si es necesario para encontrar tu logo
 def obtener_ruta_logo():
     ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(ruta_base, "images", "logo.png")
@@ -13,7 +12,6 @@ class GeneradorPDF:
     def __init__(self, nombre_archivo, titulo_reporte):
         self.nombre_archivo = nombre_archivo
         self.titulo = titulo_reporte
-        # Tamaño carta
         self.c = canvas.Canvas(nombre_archivo, pagesize=letter)
         self.ancho, self.alto = letter
 
@@ -23,31 +21,30 @@ class GeneradorPDF:
         if os.path.exists(ruta_logo):
             self.c.drawImage(ruta_logo, 30, 700, width=80, height=80, mask='auto')
         
-        # Títulos
+        # Títulos (EN INGLÉS)
         self.c.setFont("Helvetica-Bold", 20)
-        self.c.setFillColor(HexColor("#B71C1C")) # Rojo Chivata's
-        self.c.drawString(130, 750, "CHIVATA'S BURGER - INVENTARIO")
+        self.c.setFillColor(HexColor("#B71C1C")) 
+        self.c.drawString(130, 750, "CHIVATA'S BURGER - INVENTORY") 
         
         self.c.setFont("Helvetica-Bold", 14)
         self.c.setFillColor(HexColor("#000000"))
         self.c.drawString(130, 730, self.titulo)
         
         # Fecha
-        fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
+        fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M")
         self.c.setFont("Helvetica", 10)
-        self.c.drawString(450, 750, f"Fecha: {fecha_hoy}")
+        self.c.drawString(450, 750, f"Date: {fecha_hoy}") 
         
         # Línea divisoria
         self.c.setStrokeColor(HexColor("#B71C1C"))
         self.c.line(30, 700, 580, 700)
 
     def generar_tabla(self, datos):
-        
         y = 670 
-        encabezados = ["ID", "Producto", "Stock", "Unidad", "Precio", "Caducidad"]
-        posiciones_x = [30, 70, 220, 280, 350, 430] 
+        # ENCABEZADOS DE TABLA (EN INGLÉS)
+        encabezados = ["ID", "Product", "Stock", "Unit", "Price", "Expiration"] 
+        posiciones_x = [30, 70, 220, 280, 350, 430]
 
-        # Dibujar Encabezados de Tabla
         self.c.setFont("Helvetica-Bold", 10)
         self.c.setFillColor(HexColor("#FFFFFF"))
         
@@ -67,7 +64,7 @@ class GeneradorPDF:
 
         for fila in datos:
             self.c.drawString(posiciones_x[0], y, str(fila[0])) 
-            self.c.drawString(posiciones_x[1], y, str(fila[1])[:25])
+            self.c.drawString(posiciones_x[1], y, str(fila[1])[:25]) 
             self.c.drawString(posiciones_x[2], y, str(fila[3])) 
             self.c.drawString(posiciones_x[3], y, str(fila[4])) 
             self.c.drawString(posiciones_x[4], y, f"${fila[5]}") 
@@ -89,7 +86,8 @@ class GeneradorPDF:
         self.c.line(30, y+5, 580, y+5)
         y -= 20
         self.c.setFont("Helvetica-Bold", 12)
-        self.c.drawString(350, y, f"Valor Total Inventario: ${total_inventario:.2f}")
+        # TOTAL (EN INGLÉS)
+        self.c.drawString(350, y, f"Total Inventory Value: ${total_inventario:.2f}") 
 
     def guardar(self):
         self.c.save()

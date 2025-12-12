@@ -57,7 +57,6 @@ class ProductosMain(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "GESTIÓN DE INGREDIENTES")
         
-        # Variable para recordar la última carpeta usada al guardar reportes
         self.ultimo_directorio = os.getcwd() 
 
         frame_tabla = Frame(self, bg="white")
@@ -137,12 +136,7 @@ class ProductosMain(EstiloBase):
         Button(ventana, text="📅 Próximos a Caducar", command=lambda: self.generar_pdf_reporte("Caducar"), **estilo_btn_rep).pack(pady=10)
         Button(ventana, text="Cerrar", command=ventana.destroy, bg="#B71C1C", fg="white", width=15).pack(pady=20)
 
-    # --- FUNCIÓN CORREGIDA PARA NOMBRES ÚNICOS ---
     def obtener_nombre_unico(self, directorio, nombre_archivo):
-        """
-        Verifica si el archivo existe EN EL DIRECTORIO DADO.
-        Si existe 'Reporte.pdf', sugiere 'Reporte (1).pdf'.
-        """
         ruta_completa = os.path.join(directorio, nombre_archivo)
         
         if not os.path.exists(ruta_completa):
@@ -162,39 +156,37 @@ class ProductosMain(EstiloBase):
         nombre_default = ""
         titulo = ""
         
+        # --- CAMBIOS AQUÍ: Títulos y Nombres en Inglés ---
         if tipo == "Completo":
             datos = Productos.buscar()
-            nombre_default = "Reporte_Ingredientes_Completo.pdf"
-            titulo = "REPORTE DE INGREDIENTES GENERAL"
+            nombre_default = "Inventory_Full_Report.pdf" # Inglés
+            titulo = "GENERAL INVENTORY REPORT"        # Inglés
         elif tipo == "Bajo":
             datos = Productos.buscar("Stock Bajo") 
-            nombre_default = "Reporte_Stock_Bajo.pdf"
-            titulo = "INGREDIENTES CON STOCK BAJO"
+            nombre_default = "Inventory_Low_Stock.pdf"   # Inglés
+            titulo = "LOW STOCK INGREDIENTS"           # Inglés
         elif tipo == "Caducar":
             datos = Productos.buscar("Por Caducar")
-            nombre_default = "Reporte_Caducidad.pdf"
-            titulo = "INGREDIENTES PRÓXIMOS A CADUCAR"
+            nombre_default = "Inventory_Expiring_Soon.pdf" # Inglés
+            titulo = "EXPIRING INGREDIENTS (NEXT 7 DAYS)"  # Inglés
 
         if not datos:
             messagebox.showinfo("Aviso", "No hay datos para generar este reporte.")
             return
 
-        # 1. Calcular el nombre único BUSCANDO EN EL ÚLTIMO DIRECTORIO USADO
         nombre_sugerido = self.obtener_nombre_unico(self.ultimo_directorio, nombre_default)
 
-        # 2. Diálogo para guardar (iniciando en la última carpeta)
         ruta_guardado = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("Archivos PDF", "*.pdf")],
             initialdir=self.ultimo_directorio, 
             initialfile=nombre_sugerido, 
-            title="Guardar Reporte Como"
+            title="Save Report As" # Título de ventana en inglés
         )
 
         if not ruta_guardado:
             return
 
-        # 3. Actualizar la memoria del directorio para la próxima vez
         self.ultimo_directorio = os.path.dirname(ruta_guardado)
 
         try:
@@ -203,12 +195,12 @@ class ProductosMain(EstiloBase):
             pdf.generar_tabla(datos)
             pdf.guardar()
             
-            respuesta = messagebox.askyesno("Reporte Generado", f"Se guardó correctamente en:\n{ruta_guardado}\n\n¿Deseas abrirlo ahora?")
+            respuesta = messagebox.askyesno("Success", f"Report saved at:\n{ruta_guardado}\n\nDo you want to open it now?")
             if respuesta:
                 if sys.platform == "win32": os.startfile(ruta_guardado)
                 else: subprocess.call(["xdg-open", ruta_guardado])
         except Exception as e:
-            messagebox.showerror("Error", f"Error reporte: {e}")
+            messagebox.showerror("Error", f"Error generating PDF: {e}")
 
 # ==========================================================
 # PANTALLA 2: INSERTAR
@@ -240,7 +232,7 @@ class ProductosInsertar(EstiloBase):
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
+                  font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
             
             if var_key == "caducidad":
                 ent = DateEntry(form_frame, textvariable=self.vars[var_key], width=38, font=FONT_INPUT,
@@ -312,7 +304,7 @@ class ProductosInsertar(EstiloBase):
         except ValueError: prec = 0.0
         
         datos = [self.vars["nombre"].get(), self.vars["desc"].get(), cant,
-                self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
+                 self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
         
         if self.modo == "insertar":
             if Productos.insertar(*datos):
