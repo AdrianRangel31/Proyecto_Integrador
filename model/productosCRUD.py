@@ -2,33 +2,33 @@ from conexionBD import *
 from tkinter import messagebox
 
 class Productos:
-    
     @staticmethod
     def buscar(campo="Todo", valor=None):
         cursor, conexion = conectarBD()
         if cursor == None:
-            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            messagebox.showinfo("Notice", "Error connecting to database")
             return []
 
         sql = "SELECT * FROM ingredientes"
         
-        if campo == "Todo":
+        if campo == "All": # Antes "Todo"
             sql = "SELECT * FROM ingredientes"
         else:
             match valor:
-                case "Mayor Precio":
+                case "Highest Price":
                     sql = "SELECT * FROM ingredientes ORDER BY precio DESC"
-                case "Menor Precio":
+                case "Lowest Price":
                     sql = "SELECT * FROM ingredientes ORDER BY precio ASC"
-                case "Stock Bajo":
+                case "Low Stock":
                     sql = "SELECT * FROM ingredientes ORDER BY cantidad ASC"
-                case "Por Caducar":
+                case "Expiring Soon":
                     sql = "SELECT * FROM ingredientes ORDER BY fecha_caducidad ASC"
                 case _:
+                    # Mapeo de campos de UI a columnas BD
                     filtros = {
                         "ID": "id_producto",
-                        "Nombre": "nombre",
-                        "Proveedor": "id_proveedor"
+                        "Name": "nombre",
+                        "Supplier": "id_proveedor"
                     }
                     if campo in filtros:
                         sql = f"SELECT * FROM ingredientes WHERE {filtros[campo]} LIKE '%{valor}%'"
@@ -39,7 +39,7 @@ class Productos:
             desconectarBD(conexion)
             return resultado
         except Exception as e:
-            messagebox.showerror("Error SQL", f"Error al buscar en ingredientes: {e}")
+            messagebox.showerror("SQL Error", f"Error searching ingredients: {e}")
             if conexion: desconectarBD(conexion)
             return []
 
@@ -57,7 +57,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar en ingredientes: {e}")
+            messagebox.showerror("Error", f"Could not save ingredient: {e}")
             if conexion: desconectarBD(conexion)
             return False
 
@@ -76,7 +76,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo actualizar: {e}")
+            messagebox.showerror("Error", f"Could not update: {e}")
             if conexion: desconectarBD(conexion)
             return False
 
@@ -90,7 +90,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se puede eliminar: {e}")
+            messagebox.showerror("Error", f"Could not delete: {e}")
             if conexion: desconectarBD(conexion)
             return False
 
@@ -106,6 +106,6 @@ class Productos:
             desconectarBD(conexion)
             return datos
         except Exception as e:
-            messagebox.showerror("Error Proveedores", f"No se pudieron cargar los proveedores.\nError técnico: {e}")
+            messagebox.showerror("Suppliers Error", f"Could not load suppliers.\nTechnical error: {e}")
             if conexion: desconectarBD(conexion)
             return []

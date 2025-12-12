@@ -10,14 +10,14 @@ from view.Productos.productos import *
 from view.Proveedores.proveedores_interfaz import *
 from view.ventas.menu import ventanaMenu
 
-class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos y metodos de la clase Frame()
-    def __init__(self, master, controlador): #El master es el contenedor padre del widget o frame. En todas las interfaces sera la ventana App()
-        super().__init__(master) #Se heredan los atributos que tenga la clase App. 
-        self.controlador = controlador #El controlador hereda los metodos de la clase App. Se usara principalmente para la funcion mostrar pantalla. Ej. self.controlador.mostrar_pantalla("interfaz")
+class Dashboard(Frame):
+    def __init__(self, master, controlador):
+        super().__init__(master) 
+        self.controlador = controlador 
         global admin
         admin = False
 
-        # --- 1. Configuración de Colores ---
+        # --- Configuración de Colores ---
         COLOR_FONDO_APP    = "#B01E2D"
         COLOR_BLANCO       = "#FFFFFF"
         COLOR_HEADER_ROJO  = "#F82A3E"
@@ -28,7 +28,6 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
         self.configure(bg=COLOR_FONDO_APP)
 
-        # --- 2. Escalado Dinámico ---
         self.master.update_idletasks()
         ancho_ventana = self.master.winfo_width()
         alto_ventana = self.master.winfo_height()
@@ -39,29 +38,18 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         def s(valor):
             return int(valor * self.escala)
 
-        # Fuentes
         f_welcome_t   = ("Arial", s(12))
         f_welcome_n   = ("Arial", s(20), "bold")
         f_btn_nav     = ("Arial", s(13))
         f_label_chart = ("Arial", s(15), "bold")
-        f_label_sc    = ("Arial", s(14))
-        f_btn_sc      = ("Arial", s(12), "bold")
 
-        # Tamaños
         w_logo, h_logo   = s(70), s(70)
         w_chart, h_chart = s(480), s(300)
-        w_icon, h_icon   = s(24), s(24)
 
-        # Espaciados
         p_card_x = s(40)
         p_card_y = s(30)
         p_gap    = s(10)
-
-        # Relleno interno botones
         btn_ipad_y = s(8) 
-
-
-        # --- 3. Estructura Visual ---
 
         card = Frame(self, bg=COLOR_BLANCO)
         card.place(relx=0.5, rely=0.5, relwidth=0.92, relheight=0.92, anchor=CENTER)
@@ -71,7 +59,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         card.rowconfigure(0, weight=1)
 
         # ==========================================
-        # COLUMNA IZQUIERDA: MENÚ
+        # MENU IZQUIERDO
         # ==========================================
         frame_left = Frame(card, bg=COLOR_BLANCO,width=450)
         frame_left.grid(row=0, column=0, sticky="nsew", padx=(p_card_x, s(20)), pady=p_card_y)
@@ -89,41 +77,36 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         frame_textos = Frame(header_content, bg=COLOR_HEADER_ROJO)
         frame_textos.pack(side=LEFT)
         Label(frame_textos, text="Welcome", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_t, anchor="w").pack(fill=X)
-        self.lbl_nombre = Label(frame_textos, text="[nombre_usuario]", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_n, anchor="w")
+        self.lbl_nombre = Label(frame_textos, text="[username]", bg=COLOR_HEADER_ROJO, fg=COLOR_TEXTO_BLANCO, font=f_welcome_n, anchor="w")
         self.lbl_nombre.pack(fill=X)
 
         frame_nav_top = Frame(frame_left, bg=COLOR_BLANCO)
-        #frame_nav_top.grid_propagate(False)
         frame_nav_top.pack(side=TOP, fill=X)
 
-
-
-        btn_ventas = Button(frame_nav_top, text="Ver ventas", 
+        btn_ventas = Button(frame_nav_top, text="View Sales", 
                      bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                      font=f_btn_nav, relief="flat", cursor="hand2",
                      command=lambda: self.controlador.mostrar_pantalla("mainventas"))
         btn_ventas.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
-        btn_productos = Button(frame_nav_top, text="Ver productos", 
+        btn_productos = Button(frame_nav_top, text="View Ingredients", 
                      bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                      font=f_btn_nav, relief="flat", cursor="hand2",
                      command=lambda: self.controlador.mostrar_pantalla("productos_main"))
         btn_productos.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
-        btn_prov = Button(frame_nav_top, text="Ver proveedores", 
+        btn_prov = Button(frame_nav_top, text="View Suppliers", 
                      bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
                      font=f_btn_nav, relief="flat", cursor="hand2",
                      command=lambda: self.controlador.mostrar_pantalla("proveedores_main"))
         btn_prov.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
 
-        self.btn_usuarios = Button(frame_nav_top, text="Ver usuarios", 
+        self.btn_usuarios = Button(frame_nav_top, text="View Users", 
             bg=COLOR_BOTON_AZUL, fg=COLOR_TEXTO_BLANCO,
             font=f_btn_nav, relief="flat", cursor="hand2",
             command=lambda: self.controlador.mostrar_pantalla("usuarios_main")) 
-        #btn_usuarios.pack(fill=X, pady=s(12), ipady=btn_ipad_y)
-
-        # Botón Cerrar Sesión
-        btn_logout = Button(frame_left, text="Cerrar sesión", 
+        
+        btn_logout = Button(frame_left, text="Log Out", 
                             bg=COLOR_BOTON_ROJO, fg=COLOR_TEXTO_BLANCO,
                             font=f_btn_nav, relief="flat", cursor="hand2",
                             command=lambda: self.controlador.mostrar_pantalla("Login"))
@@ -131,7 +114,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
 
 
         # ==========================================
-        # COLUMNA DERECHA: DASHBOARD
+        # DASHBOARD DERECHO
         # ==========================================
         frame_right = Frame(card, bg=COLOR_BLANCO)
         frame_right.grid(row=0, column=1, sticky="nsew", padx=(s(20), p_card_x), pady=p_card_y)
@@ -139,7 +122,7 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
         area_grafico = Frame(frame_right, bg=COLOR_BLANCO)
         area_grafico.pack(fill=BOTH, expand=True)
 
-        self.img_chart = obtener_imagen("grafico_ingresos_Semanal.png", w_chart, h_chart)
+        self.img_chart = obtener_imagen("grafico_ingresos_Weekly.png", w_chart, h_chart)
 
         contenedor_img = Frame(area_grafico, bg=COLOR_BLANCO)
         contenedor_img.pack(expand=True) 
@@ -148,66 +131,46 @@ class Dashboard(Frame):#Cada interfaz es un Frame. La clase hereda los atributos
             lbl_chart = Label(contenedor_img, image=self.img_chart, bg=COLOR_BLANCO)
             lbl_chart.pack(pady=(0, s(15)))
         else:
-            Label(contenedor_img, text="[ Gráfico ]", bg="#eee", 
+            Label(contenedor_img, text="[ Chart ]", bg="#eee", 
                   width=int(50*self.escala), height=int(15*self.escala)).pack()
 
-        Label(contenedor_img, text="Ventas semanales", bg=COLOR_BLANCO, 
+        Label(contenedor_img, text="Weekly Sales", bg=COLOR_BLANCO, 
               fg=COLOR_TEXTO_NEGRO, font=f_label_chart).pack()
-
-
-        # --- SECCIÓN ATAJOS ---
-        area_atajos = Frame(frame_right, bg=COLOR_BLANCO)
-        area_atajos.pack(fill=X, pady=(s(10), 0))
 
 
     def actualizar_info_usuario(self, nombre, rol):
         self.lbl_nombre.config(text=nombre)
-        s = self.escala # Recuperamos la escala para mantener el padding correcto
+        s = self.escala 
         btn_ipad_y = int(8 * s)
 
         if rol == "Admin":
-            self.lbl_nombre.config(fg="#FFD700")  # Dorado para Admin
-            # Mostramos el botón
+            self.lbl_nombre.config(fg="#FFD700")  
             self.btn_usuarios.pack(fill=X, pady=int(12*s), ipady=btn_ipad_y)
         else:
             self.lbl_nombre.config(fg="#000000")
-            # Ocultamos el botón si no es Admin
             self.btn_usuarios.pack_forget()
 
 
-class App(Tk): #Clase donde va la ventana principal del sistema
+class App(Tk): 
     def __init__(self):
         super().__init__()
-        self.title("Sistema de inventario y ventas")
+        self.title("Inventory and Sales System")
         self.state('zoomed')
         self.geometry("1024x720")
 
-        self.rol_actual = None # Variable para almacenar el rol del usuario actual
+        self.rol_actual = None 
+        self.pantallas = {} 
 
-        self.pantallas = {} #Diccionario que contiene cada interfaz
-        """
-        Al crear una nueva interfaz, debe importarse y añadirse al diccionario de pantallas.
-        self.pantallas["nombre de la interfaz"] = paquete.interfaz(self,self) 
-        Es importante añadir el (self,self) pues hereda los metodos y atributos de la ventana principal para su correcto funcionamiento y conexion.
-        """
-        #self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["Login"] = Login(self, self)
         self.pantallas["Dashboard"] = Dashboard(self, self)
-        self.pantallas["plantilla"] = Plantilla(self,self) #Cada que hagan una interfaz deben agregarla al diccionario self.pantallas
+        self.pantallas["plantilla"] = Plantilla(self,self)
         self.pantallas["usuarios_main"] = UsuariosMain(self, self)
         self.pantallas["usuarios_insertar"] = UsuariosInsertar(self, self)
-        #---------------------------------------------------------------
-        #                       PANTALLAS PRODUCTOS
-        #---------------------------------------------------------------
-        self.pantallas["productos_main"] = ProductosMain(self, self)
 
+        self.pantallas["productos_main"] = ProductosMain(self, self)
         self.pantallas["productos_actualizar"] = ProductosActualizar(self, self)
         self.pantallas["productos_eliminar"] = ProductosEliminar(self, self)
 
-
-        #---------------------------------------------------------------
-        #                       PANTALLAS PROVEEDORES
-        #---------------------------------------------------------------
         self.pantallas["proveedores_main"] = ProveedoresMain(self, self)
         self.pantallas["proveedores_insertar"] = ProveedoresInsertar(self, self)
         self.pantallas["proveedores_actualizar"] = ProveedoresActualizar(self, self)
@@ -215,19 +178,16 @@ class App(Tk): #Clase donde va la ventana principal del sistema
 
         self.pantallas["menu_crud"] = ventanaMenu(self, self)
 
-
         self.crear_menu_atajos()
         self.mostrar_pantalla("Login")
 
 
-    def mostrar_pantalla(self, nombre,parametro=None): #Cambia completamente la interfaz. Incluye un "Borrar pantalla"
+    def mostrar_pantalla(self, nombre,parametro=None): 
         for pantalla in self.pantallas.values():
             pantalla.pack_forget()
         if nombre == "Login":
-            # Ocultar menú en el login pasando un menú vacío
             self.config(menu=Menu(self))
         else:
-            # Mostrar menú en el resto de pantallas
             self.config(menu=self.menubar)
 
         match nombre:
@@ -242,80 +202,70 @@ class App(Tk): #Clase donde va la ventana principal del sistema
         self.pantallas[nombre].pack(expand=True, fill="both")
 
     def ingresar(self, nombre_usuario, rol):
-        # 1. Obtener la referencia al frame del Dashboard
-        # Asegúrate que la "key" ("Dashboard") sea exactamente como la definiste al crear los frames
             self.rol_actual = rol
-            self.crear_menu_atajos()  # Actualiza el menú con el rol correcto   
+            self.crear_menu_atajos()  
 
             if "Dashboard" in self.pantallas:
                 dashboard = self.pantallas["Dashboard"]
-                # 2. Mandar el nombre al Dashboard
                 dashboard.actualizar_info_usuario(nombre_usuario, rol)
-                # 3. Cambiar de pantalla
                 self.mostrar_pantalla("Dashboard")
 
     def crear_menu_atajos(self):
-            # --- CONFIGURACIÓN DE ESTILO ---
-            # Usamos los mismos colores que defines en tu Dashboard
-            COLOR_FONDO_MENU = "#F7F7F7"   # Color del Header (Rojo Brillante)
-            COLOR_LETRA = "#000000"        # Blanco
-            COLOR_ACTIVO = "#B3B3B3"       # Color Fondo App (Rojo Oscuro) para selección
-            FUENTE_MENU = ("Arial", 13) # Fuente más grande para el tamaño
+            COLOR_FONDO_MENU = "#F7F7F7"   
+            COLOR_LETRA = "#000000"        
+            COLOR_ACTIVO = "#B3B3B3"       
+            FUENTE_MENU = ("Arial", 13) 
 
-            # Diccionario de configuración para reutilizar en todos los menús
             config_menu = {
                 "bg": COLOR_FONDO_MENU,
                 "fg": COLOR_LETRA,
                 "activebackground": COLOR_ACTIVO,
                 "activeforeground": COLOR_LETRA,
                 "font": FUENTE_MENU,
-                "tearoff": 0,   # Quita la línea punteada de separación
+                "tearoff": 0,
                 "bd": 0
             }
 
-            # --- BARRA PRINCIPAL ---
             self.menubar = Menu(self, bg=COLOR_FONDO_MENU, fg=COLOR_LETRA, font=FUENTE_MENU, bd=0)
 
-            # 1. Menú ATAJOS (General)
+            # 1. ATAJOS
             atajos_menu = Menu(self.menubar, **config_menu)
-            self.menubar.add_cascade(label="  🏠 ATAJOS RÁPIDOS  ", menu=atajos_menu)
+            self.menubar.add_cascade(label="  🏠 QUICK LINKS  ", menu=atajos_menu)
             
-            atajos_menu.add_command(label="🏠 Ir al Dashboard", command=lambda: self.mostrar_pantalla("Dashboard"))
+            atajos_menu.add_command(label="🏠 Go to Dashboard", command=lambda: self.mostrar_pantalla("Dashboard"))
             atajos_menu.add_separator()
-            atajos_menu.add_command(label="🚪 Cerrar Sesión", command=lambda: self.mostrar_pantalla("Login"))
+            atajos_menu.add_command(label="🚪 Log Out", command=lambda: self.mostrar_pantalla("Login"))
 
-            # 2. Menú VENTAS
+            # 2. VENTAS
             ventas_menu = Menu(self.menubar, **config_menu)
-            self.menubar.add_cascade(label="  💰 VENTAS  ", menu=ventas_menu)
+            self.menubar.add_cascade(label="  💰 SALES  ", menu=ventas_menu)
             
-            ventas_menu.add_command(label="📄 Gestionar Ventas (Ver Tabla)", command=lambda: self.mostrar_pantalla("mainventas"))
-            ventas_menu.add_command(label="➕ Nueva Venta", command=lambda: self.mostrar_pantalla("insertarventas"))
+            ventas_menu.add_command(label="📄 Manage Sales", command=lambda: self.mostrar_pantalla("mainventas"))
+            ventas_menu.add_command(label="➕ New Sale", command=lambda: self.mostrar_pantalla("insertarventas"))
             ventas_menu.add_separator()
-        
-            ventas_menu.add_command(label="💲 Modificar Precios (Menú)", command=lambda: self.mostrar_pantalla("menu_crud"))
+            ventas_menu.add_command(label="💲 Modify Prices", command=lambda: self.mostrar_pantalla("menu_crud"))
 
-            # 3. Menú PRODUCTOS
+            # 3. PRODUCTOS
             prod_menu = Menu(self.menubar, **config_menu)
-            self.menubar.add_cascade(label="  🍔 INGREDIENTES  ", menu=prod_menu)
+            self.menubar.add_cascade(label="  🍔 INGREDIENTS  ", menu=prod_menu)
             
-            prod_menu.add_command(label="📦 Ver Inventario", command=lambda: self.mostrar_pantalla("productos_main"))
-            prod_menu.add_command(label="➕ Añadir Ingrediente", command=lambda: self.mostrar_pantalla("productos_insertar"))
+            prod_menu.add_command(label="📦 View Inventory", command=lambda: self.mostrar_pantalla("productos_main"))
+            prod_menu.add_command(label="➕ Add Ingredient", command=lambda: self.mostrar_pantalla("productos_insertar"))
 
-            # 4. Menú PROVEEDORES
+            # 4. PROVEEDORES
             prov_menu = Menu(self.menubar, **config_menu)
-            self.menubar.add_cascade(label="  🚚 PROVEEDORES  ", menu=prov_menu)
+            self.menubar.add_cascade(label="  🚚 SUPPLIERS  ", menu=prov_menu)
             
-            prov_menu.add_command(label="📋 Ver Proveedores", command=lambda: self.mostrar_pantalla("proveedores_main"))
-            prov_menu.add_command(label="➕ Añadir Proveedor", command=lambda: self.mostrar_pantalla("proveedores_insertar"))
+            prov_menu.add_command(label="📋 View Suppliers", command=lambda: self.mostrar_pantalla("proveedores_main"))
+            prov_menu.add_command(label="➕ Add Supplier", command=lambda: self.mostrar_pantalla("proveedores_insertar"))
 
-            # 5. Menú USUARIOS
+            # 5. USUARIOS
             if self.rol_actual == "Admin":
                 user_menu = Menu(self.menubar, **config_menu)
-                self.menubar.add_cascade(label="  👥 USUARIOS  ", menu=user_menu)
-                user_menu.add_command(label="🔑 Gestionar Usuarios", command=lambda: self.mostrar_pantalla("usuarios_main"))
-                user_menu.add_command(label="➕ Crear Nuevo Usuario", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
+                self.menubar.add_cascade(label="  👥 USERS  ", menu=user_menu)
+                user_menu.add_command(label="🔑 Manage Users", command=lambda: self.mostrar_pantalla("usuarios_main"))
+                user_menu.add_command(label="➕ Create New User", command=lambda: self.mostrar_pantalla("usuarios_insertar"))
             
-            # Si el usuario ya está logueado, forzamos la actualización del menú visualmente
             if self.master: 
                 try:
                     self.config(menu=self.menubar)
