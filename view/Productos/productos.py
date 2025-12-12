@@ -1,12 +1,10 @@
 from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter import Toplevel
-from tkinter import filedialog 
+from tkinter import ttk, messagebox, Toplevel, filedialog
 import os
 import sys
 import subprocess 
 
+# --- INTENTO DE IMPORTAR TKCALENDAR ---
 try:
     from tkcalendar import DateEntry
 except ImportError:
@@ -52,6 +50,8 @@ class ProductosMain(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "INGREDIENTS MANAGEMENT")
         
+        self.ultimo_directorio = os.getcwd() 
+
         frame_tabla = Frame(self, bg="white")
         frame_tabla.pack(expand=True, fill="both", padx=30, pady=30)
 
@@ -129,37 +129,58 @@ class ProductosMain(EstiloBase):
         Button(ventana, text="📅 Expiring Soon", command=lambda: self.generar_pdf_reporte("Caducar"), **estilo_btn_rep).pack(pady=10)
         Button(ventana, text="Close", command=ventana.destroy, bg="#B71C1C", fg="white", width=15).pack(pady=20)
 
+    def obtener_nombre_unico(self, directorio, nombre_archivo):
+        ruta_completa = os.path.join(directorio, nombre_archivo)
+        
+        if not os.path.exists(ruta_completa):
+            return nombre_archivo
+        
+        nombre, ext = os.path.splitext(nombre_archivo)
+        contador = 1
+        while True:
+            nuevo_nombre = f"{nombre} ({contador}){ext}"
+            ruta_nueva = os.path.join(directorio, nuevo_nombre)
+            if not os.path.exists(ruta_nueva):
+                return nuevo_nombre
+            contador += 1
+
     def generar_pdf_reporte(self, tipo):
         datos = []
         nombre_default = ""
         titulo = ""
         
+        # --- CAMBIOS AQUÍ: Títulos y Nombres en Inglés ---
         if tipo == "Completo":
-            datos = Productos.buscar("All")
-            nombre_default = "Report_All_Ingredients.pdf"
-            titulo = "GENERAL INGREDIENT REPORT"
+            datos = Productos.buscar()
+            nombre_default = "Inventory_Full_Report.pdf" # Inglés
+            titulo = "GENERAL INVENTORY REPORT"        # Inglés
         elif tipo == "Bajo":
-            datos = Productos.buscar("Low Stock") 
-            nombre_default = "Report_Low_Stock.pdf"
-            titulo = "LOW STOCK INGREDIENTS"
+            datos = Productos.buscar("Stock Bajo") 
+            nombre_default = "Inventory_Low_Stock.pdf"   # Inglés
+            titulo = "LOW STOCK INGREDIENTS"           # Inglés
         elif tipo == "Caducar":
-            datos = Productos.buscar("Expiring Soon")
-            nombre_default = "Report_Expiration.pdf"
-            titulo = "INGREDIENTS EXPIRING SOON"
+            datos = Productos.buscar("Por Caducar")
+            nombre_default = "Inventory_Expiring_Soon.pdf" # Inglés
+            titulo = "EXPIRING INGREDIENTS (NEXT 7 DAYS)"  # Inglés
 
         if not datos:
             messagebox.showinfo("Notice", "No data available for this report.")
             return
 
+        nombre_sugerido = self.obtener_nombre_unico(self.ultimo_directorio, nombre_default)
+
         ruta_guardado = filedialog.asksaveasfilename(
             defaultextension=".pdf",
-            filetypes=[("PDF Files", "*.pdf")],
-            initialfile=nombre_default,
-            title="Save Report As"
+            filetypes=[("Archivos PDF", "*.pdf")],
+            initialdir=self.ultimo_directorio, 
+            initialfile=nombre_sugerido, 
+            title="Save Report As" # Título de ventana en inglés
         )
 
         if not ruta_guardado:
             return
+
+        self.ultimo_directorio = os.path.dirname(ruta_guardado)
 
         try:
             pdf = GeneradorPDF(ruta_guardado, titulo)
@@ -167,12 +188,12 @@ class ProductosMain(EstiloBase):
             pdf.generar_tabla(datos)
             pdf.guardar()
             
-            respuesta = messagebox.askyesno("Report Generated", f"Saved successfully at:\n{ruta_guardado}\n\nDo you want to open it now?")
+            respuesta = messagebox.askyesno("Success", f"Report saved at:\n{ruta_guardado}\n\nDo you want to open it now?")
             if respuesta:
                 if sys.platform == "win32": os.startfile(ruta_guardado)
                 else: subprocess.call(["xdg-open", ruta_guardado])
         except Exception as e:
-            messagebox.showerror("Error", f"Report error: {e}")
+            messagebox.showerror("Error", f"Error generating PDF: {e}")
 
 class ProductosInsertar(EstiloBase):
     def __init__(self, master, controlador, modo="insertar"):
