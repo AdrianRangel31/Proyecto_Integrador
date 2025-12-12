@@ -42,57 +42,49 @@ class GeneradorPDF:
         self.c.line(30, 700, 580, 700)
 
     def generar_tabla(self, datos):
-        # datos es una lista de tuplas: [(id, nombre, desc, cant, unidad, precio, cad, prov), ...]
         
-        y = 670 # Posición vertical inicial
+        y = 670 
         encabezados = ["ID", "Producto", "Stock", "Unidad", "Precio", "Caducidad"]
-        posiciones_x = [30, 70, 220, 280, 350, 430] # Dónde empieza cada columna
+        posiciones_x = [30, 70, 220, 280, 350, 430] 
 
         # Dibujar Encabezados de Tabla
         self.c.setFont("Helvetica-Bold", 10)
         self.c.setFillColor(HexColor("#FFFFFF"))
         
-        # Fondo rojo para encabezados
         self.c.setFillColor(HexColor("#B71C1C"))
         self.c.rect(30, y-5, 550, 15, fill=1, stroke=0)
         
-        self.c.setFillColor(HexColor("#FFFFFF")) # Texto blanco
+        self.c.setFillColor(HexColor("#FFFFFF")) 
         for i, enc in enumerate(encabezados):
             self.c.drawString(posiciones_x[i], y, enc)
         
-        y -= 20 # Bajar renglón
+        y -= 20 
         
-        # Dibujar Filas
         self.c.setFont("Helvetica", 9)
         self.c.setFillColor(HexColor("#000000"))
         
         total_inventario = 0
 
         for fila in datos:
-            # fila: (0:id, 1:nombre, 2:desc, 3:cant, 4:unidad, 5:precio, 6:cad, 7:prov)
-            # Imprimimos solo lo relevante
-            self.c.drawString(posiciones_x[0], y, str(fila[0])) # ID
-            self.c.drawString(posiciones_x[1], y, str(fila[1])[:25]) # Nombre (recortado si es muy largo)
-            self.c.drawString(posiciones_x[2], y, str(fila[3])) # Cantidad
-            self.c.drawString(posiciones_x[3], y, str(fila[4])) # Unidad
-            self.c.drawString(posiciones_x[4], y, f"${fila[5]}") # Precio
-            self.c.drawString(posiciones_x[5], y, str(fila[6])) # Caducidad
+            self.c.drawString(posiciones_x[0], y, str(fila[0])) 
+            self.c.drawString(posiciones_x[1], y, str(fila[1])[:25])
+            self.c.drawString(posiciones_x[2], y, str(fila[3])) 
+            self.c.drawString(posiciones_x[3], y, str(fila[4])) 
+            self.c.drawString(posiciones_x[4], y, f"${fila[5]}") 
+            self.c.drawString(posiciones_x[5], y, str(fila[6])) 
             
-            # Calculo de valor total (Precio * Cantidad)
             try:
                 total_inventario += float(fila[3]) * float(fila[5])
             except:
                 pass
 
-            y -= 15 # Bajar para el siguiente producto
+            y -= 15 
             
-            # Si se acaba la hoja, crear nueva (simple)
             if y < 50:
                 self.c.showPage()
                 self.generar_encabezado()
                 y = 670
 
-        # Pie de página con totales
         self.c.setStrokeColor(HexColor("#B71C1C"))
         self.c.line(30, y+5, 580, y+5)
         y -= 20

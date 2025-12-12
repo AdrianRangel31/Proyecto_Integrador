@@ -5,33 +5,48 @@ class Productos:
     
     @staticmethod
     def buscar(campo="Todo", valor=None):
+        """
+        Busca items en la tabla INGREDIENTES.
+        Maneja lógica diferenciada para Reportes y Búsqueda General.
+        """
         cursor, conexion = conectarBD()
         if cursor == None:
             messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
             return []
 
+        # SQL por defecto (Trae todo)
         sql = "SELECT * FROM ingredientes"
+
+        # --- CASO 1: REPORTES ESPECÍFICOS (Llamados desde el botón Reportes) ---
+        if campo == "Stock Bajo":
+            sql = "SELECT * FROM ingredientes WHERE cantidad < 10 ORDER BY cantidad ASC"
         
-        if campo == "Todo":
+        elif campo == "Por Caducar":
+            sql = """SELECT * FROM ingredientes 
+                    WHERE fecha_caducidad BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) 
+                    ORDER BY fecha_caducidad ASC"""
+
+        # --- CASO 2: BÚSQUEDA GENERAL (Desde la tabla principal) ---
+        elif campo == "Todo":
             sql = "SELECT * FROM ingredientes"
+            if valor == "Mayor Precio":
+                sql += " ORDER BY precio DESC"
+            elif valor == "Menor Precio":
+                sql += " ORDER BY precio ASC"
+            elif valor == "Stock Bajo": 
+                sql += " ORDER BY cantidad ASC"
+            elif valor == "Por Caducar":
+                sql += " ORDER BY fecha_caducidad ASC"
+        
+        # --- CASO 3: BÚSQUEDA POR COLUMNA ESPECÍFICA ---
         else:
-            match valor:
-                case "Mayor Precio":
-                    sql = "SELECT * FROM ingredientes ORDER BY precio DESC"
-                case "Menor Precio":
-                    sql = "SELECT * FROM ingredientes ORDER BY precio ASC"
-                case "Stock Bajo":
-                    sql = "SELECT * FROM ingredientes ORDER BY cantidad ASC"
-                case "Por Caducar":
-                    sql = "SELECT * FROM ingredientes ORDER BY fecha_caducidad ASC"
-                case _:
-                    filtros = {
-                        "ID": "id_producto",
-                        "Nombre": "nombre",
-                        "Proveedor": "id_proveedor"
-                    }
-                    if campo in filtros:
-                        sql = f"SELECT * FROM ingredientes WHERE {filtros[campo]} LIKE '%{valor}%'"
+            filtros = {
+                "ID": "id_producto",
+                "Nombre": "nombre",
+                "Proveedor": "id_proveedor"
+            }
+            if campo in filtros and valor:
+                sql = f"SELECT * FROM ingredientes WHERE {filtros[campo]} LIKE '%{valor}%'"
 
         try:
             cursor.execute(sql)
@@ -49,8 +64,8 @@ class Productos:
         if cursor == None: return False
         try:
             sql = """INSERT INTO ingredientes 
-                        (id_producto, nombre, descripcion, cantidad, unidad, precio, fecha_caducidad, id_proveedor) 
-                        VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"""
+                    (id_producto, nombre, descripcion, cantidad, unidad, precio, fecha_caducidad, id_proveedor) 
+                    VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"""
             val = (nombre, descripcion, cantidad, unidad, precio, fecha_cad, proveedor)
             cursor.execute(sql, val)
             conexion.commit()
@@ -67,9 +82,9 @@ class Productos:
         if cursor == None: return False
         try:
             sql = """UPDATE ingredientes SET 
-                        nombre=%s, descripcion=%s, cantidad=%s, unidad=%s, precio=%s, 
-                        fecha_caducidad=%s, id_proveedor=%s 
-                        WHERE id_producto=%s"""
+                    nombre=%s, descripcion=%s, cantidad=%s, unidad=%s, precio=%s, 
+                    fecha_caducidad=%s, id_proveedor=%s 
+                    WHERE id_producto=%s"""
             val = (nombre, descripcion, cantidad, unidad, precio, fecha_cad, proveedor, id_prod)
             cursor.execute(sql, val)
             conexion.commit()
@@ -97,15 +112,13 @@ class Productos:
     @staticmethod
     def obtener_lista_proveedores():
         cursor, conexion = conectarBD()
-        if cursor == None: 
-            return []
-        
+        if cursor == None: return []
         try:
             cursor.execute("SELECT id_proveedor, nombre_empresa FROM proveedores")
             datos = cursor.fetchall()
             desconectarBD(conexion)
             return datos
         except Exception as e:
-            messagebox.showerror("Error Proveedores", f"No se pudieron cargar los proveedores.\nError técnico: {e}")
+            messagebox.showerror("Error Proveedores", f"No se pudieron cargar los proveedores.\nError: {e}")
             if conexion: desconectarBD(conexion)
             return []

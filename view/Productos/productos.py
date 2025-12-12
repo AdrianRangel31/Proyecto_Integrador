@@ -1,13 +1,10 @@
 from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter import Toplevel
-from tkinter import filedialog 
+from tkinter import ttk, messagebox, Toplevel, filedialog
 import os
 import sys
 import subprocess 
 
-# --- IMPORTAR TKCALENDAR ---
+# --- INTENTO DE IMPORTAR TKCALENDAR ---
 try:
     from tkcalendar import DateEntry
 except ImportError:
@@ -60,6 +57,9 @@ class ProductosMain(EstiloBase):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, "GESTIÓN DE INGREDIENTES")
         
+        # Variable para recordar la última carpeta usada al guardar reportes
+        self.ultimo_directorio = os.getcwd() 
+
         frame_tabla = Frame(self, bg="white")
         frame_tabla.pack(expand=True, fill="both", padx=30, pady=30)
 
@@ -137,12 +137,31 @@ class ProductosMain(EstiloBase):
         Button(ventana, text="📅 Próximos a Caducar", command=lambda: self.generar_pdf_reporte("Caducar"), **estilo_btn_rep).pack(pady=10)
         Button(ventana, text="Cerrar", command=ventana.destroy, bg="#B71C1C", fg="white", width=15).pack(pady=20)
 
+    # --- FUNCIÓN CORREGIDA PARA NOMBRES ÚNICOS ---
+    def obtener_nombre_unico(self, directorio, nombre_archivo):
+        """
+        Verifica si el archivo existe EN EL DIRECTORIO DADO.
+        Si existe 'Reporte.pdf', sugiere 'Reporte (1).pdf'.
+        """
+        ruta_completa = os.path.join(directorio, nombre_archivo)
+        
+        if not os.path.exists(ruta_completa):
+            return nombre_archivo
+        
+        nombre, ext = os.path.splitext(nombre_archivo)
+        contador = 1
+        while True:
+            nuevo_nombre = f"{nombre} ({contador}){ext}"
+            ruta_nueva = os.path.join(directorio, nuevo_nombre)
+            if not os.path.exists(ruta_nueva):
+                return nuevo_nombre
+            contador += 1
+
     def generar_pdf_reporte(self, tipo):
         datos = []
         nombre_default = ""
         titulo = ""
         
-        # 1. Configurar datos según selección
         if tipo == "Completo":
             datos = Productos.buscar()
             nombre_default = "Reporte_Ingredientes_Completo.pdf"
@@ -160,19 +179,25 @@ class ProductosMain(EstiloBase):
             messagebox.showinfo("Aviso", "No hay datos para generar este reporte.")
             return
 
-        # 2. ELEGIR DÓNDE GUARDAR
+        # 1. Calcular el nombre único BUSCANDO EN EL ÚLTIMO DIRECTORIO USADO
+        nombre_sugerido = self.obtener_nombre_unico(self.ultimo_directorio, nombre_default)
+
+        # 2. Diálogo para guardar (iniciando en la última carpeta)
         ruta_guardado = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("Archivos PDF", "*.pdf")],
-            initialfile=nombre_default,
+            initialdir=self.ultimo_directorio, 
+            initialfile=nombre_sugerido, 
             title="Guardar Reporte Como"
         )
 
         if not ruta_guardado:
             return
 
+        # 3. Actualizar la memoria del directorio para la próxima vez
+        self.ultimo_directorio = os.path.dirname(ruta_guardado)
+
         try:
-            # 3. Generar PDF en la ruta elegida
             pdf = GeneradorPDF(ruta_guardado, titulo)
             pdf.generar_encabezado()
             pdf.generar_tabla(datos)
@@ -215,9 +240,8 @@ class ProductosInsertar(EstiloBase):
 
         for idx, (lbl_text, var_key) in enumerate(campos):
             Label(form_frame, text=lbl_text, bg=COLOR_TEXTO_LBL, fg="black", 
-                  font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
+                font=FONT_LABEL, width=35, anchor="w", padx=10).grid(row=idx*2, column=0, sticky="w", pady=(10, 0))
             
-            # --- IMPLEMENTACIÓN DEL CALENDARIO ---
             if var_key == "caducidad":
                 ent = DateEntry(form_frame, textvariable=self.vars[var_key], width=38, font=FONT_INPUT,
                                 background='darkblue', foreground='white', borderwidth=2,
@@ -288,7 +312,7 @@ class ProductosInsertar(EstiloBase):
         except ValueError: prec = 0.0
         
         datos = [self.vars["nombre"].get(), self.vars["desc"].get(), cant,
-                 self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
+                self.vars["unidad"].get(), prec, self.vars["caducidad"].get(), self.vars["prov"].get()]
         
         if self.modo == "insertar":
             if Productos.insertar(*datos):
