@@ -2,7 +2,6 @@ from conexionBD import *
 from tkinter import messagebox
 
 class Productos:
-    
     @staticmethod
     def buscar(campo="Todo", valor=None):
         """
@@ -11,7 +10,7 @@ class Productos:
         """
         cursor, conexion = conectarBD()
         if cursor == None:
-            messagebox.showinfo("Aviso", "Error al conectarse a la base de datos")
+            messagebox.showinfo("Notice", "Error connecting to database")
             return []
 
         # SQL por defecto (Trae todo)
@@ -54,7 +53,7 @@ class Productos:
             desconectarBD(conexion)
             return resultado
         except Exception as e:
-            messagebox.showerror("Error SQL", f"Error al buscar en ingredientes: {e}")
+            messagebox.showerror("SQL Error", f"Error searching ingredients: {e}")
             if conexion: desconectarBD(conexion)
             return []
 
@@ -72,7 +71,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar en ingredientes: {e}")
+            messagebox.showerror("Error", f"Could not save ingredient: {e}")
             if conexion: desconectarBD(conexion)
             return False
 
@@ -91,7 +90,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo actualizar: {e}")
+            messagebox.showerror("Error", f"Could not update: {e}")
             if conexion: desconectarBD(conexion)
             return False
 
@@ -105,7 +104,7 @@ class Productos:
             desconectarBD(conexion)
             return True
         except Exception as e:
-            messagebox.showerror("Error", f"No se puede eliminar: {e}")
+            messagebox.showerror("Error", f"Could not delete: {e}")
             if conexion: desconectarBD(conexion)
             return False
 

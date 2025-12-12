@@ -13,37 +13,34 @@ class ventanaMenu(tk.Frame):
 
         head = header(self, controlador)
         head.pack(fill="x")
-        head.titulo = "Modificar precios"
+        head.titulo = "Modify Prices"
 
         self.producto_var = tk.StringVar()
         self.precio_var = tk.IntVar()
 
-        # Frame formulario
         form_frame = tk.Frame(self,bg=COLOR_FRAME)
         form_frame.pack(pady=10)
         
-        tk.Label(form_frame, text="Producto",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=0, column=0, padx=5, pady=5)
+        tk.Label(form_frame, text="Product",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=0, column=0, padx=5, pady=5)
         tk.Entry(form_frame, textvariable=self.producto_var,width=30,font=("Arial",20)).grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Precio",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=1, column=0, padx=5, pady=5)
+        tk.Label(form_frame, text="Price",font=("Arial", 20),fg="white",bg=COLOR_FRAME).grid(row=1, column=0, padx=5, pady=5)
         tk.Entry(form_frame, textvariable=self.precio_var,width=30,font=("Arial",20)).grid(row=1, column=1, padx=5, pady=5)
 
-        # Botones
         btn_frame = tk.Frame(self,bg=COLOR_FRAME)
         btn_frame.pack(pady=10)
 
-        tk.Button(btn_frame, text="Agregar", command=self.agregar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=0, padx=5)
-        tk.Button(btn_frame, text="Modificar", command=self.modificar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=1, padx=5)
-        tk.Button(btn_frame, text="Eliminar", command=self.eliminar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=2, padx=5)
-        tk.Button(btn_frame, text="Limpiar", command=self.limpiar_campos,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=3, padx=5)
+        tk.Button(btn_frame, text="Add", command=self.agregar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=0, padx=5)
+        tk.Button(btn_frame, text="Modify", command=self.modificar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=1, padx=5)
+        tk.Button(btn_frame, text="Delete", command=self.eliminar_producto,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=2, padx=5)
+        tk.Button(btn_frame, text="Clear", command=self.limpiar_campos,width=15,font=("Arial",16),bg="#669BBC",fg="white").grid(row=0, column=3, padx=5)
 
-        # Tabla
         chartframe = tk.Frame(self,width=800,height=400)
         chartframe.pack(padx=100)
-        self.tree = ttk.Treeview(chartframe, columns=("ID", "Producto", "Precio"), show="headings")
+        self.tree = ttk.Treeview(chartframe, columns=("ID", "Product", "Price"), show="headings")
         self.tree.heading("ID", text="ID")
-        self.tree.heading("Producto", text="Producto")
-        self.tree.heading("Precio", text="Precio")
+        self.tree.heading("Product", text="Product")
+        self.tree.heading("Price", text="Price")
         self.tree.pack()
         self.tree.bind("<ButtonRelease-1>", self.seleccionar_producto)
 
@@ -59,13 +56,13 @@ class ventanaMenu(tk.Frame):
         if self.producto_var.get() and self.precio_var.get():
             insertar = ventasCRUD.menu.insertar(self.producto_var.get(), self.precio_var.get())
             if insertar:
-                messagebox.showinfo("Exito","Se realizó el registro correctamente")
+                messagebox.showinfo("Success","Registered successfully")
                 self.mostrar_productos()
                 self.limpiar_campos()
             else: 
-                messagebox.showinfo("Error","Ocurrió un error al realizar el registro")
+                messagebox.showinfo("Error","An error occurred while registering")
         else:
-            messagebox.showwarning("Atención", "Todos los campos son obligatorios.")
+            messagebox.showwarning("Attention", "All fields are required.")
 
     def modificar_producto(self):
         selected = self.tree.focus()
@@ -74,30 +71,30 @@ class ventanaMenu(tk.Frame):
             id_menu = valores[0]
             actualizar = ventasCRUD.menu.actualizar(id_menu, self.producto_var.get(), self.precio_var.get())
             if actualizar:
-                messagebox.showinfo("Exito","Se actualizó el registro correctamente")
+                messagebox.showinfo("Success","Updated successfully")
                 self.mostrar_productos()
                 self.limpiar_campos()
             else:
-                messagebox.showinfo("Error","Ocurrió un error al actualizar el registro")
+                messagebox.showinfo("Error","An error occurred while updating")
         else:
-            messagebox.showwarning("Atención", "Selecciona un registro para modificar.")
+            messagebox.showwarning("Attention", "Select a record to modify.")
 
     def eliminar_producto(self):
         selected = self.tree.focus()
         if selected:
             valores = self.tree.item(selected, "values")
             id_menu = valores[0]
-            eliminar = messagebox.askyesno("Advertencia",f"¿Está seguro de que quiere eliminar este registro?\nID: {id_menu}")
+            eliminar = messagebox.askyesno("Warning",f"Are you sure you want to delete this record?\nID: {id_menu}")
             if eliminar:
                 eliminar = ventasCRUD.menu.eliminar(id_menu)
                 if eliminar:
-                    messagebox.showinfo("Exito","Se eliminó el registro correctamente")
+                    messagebox.showinfo("Success","Deleted successfully")
                     self.mostrar_productos()
                     self.limpiar_campos()
                 else:
-                    messagebox.showinfo("Error","Ocurrió un error al eliminar el registro\nNo es posible eliminar un registro si en detalle de venta hay registros relacionados.")
+                    messagebox.showinfo("Error","An error occurred while deleting\nIt is not possible to delete a record if there are related records in sales details.")
         else:
-            messagebox.showwarning("Atención", "Selecciona un registro para eliminar.")
+            messagebox.showwarning("Attention", "Select a record to delete.")
 
     def seleccionar_producto(self, event):
         selected = self.tree.focus()

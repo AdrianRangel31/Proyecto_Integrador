@@ -10,7 +10,6 @@ try:
 except ImportError:
     from tkinter import Entry as DateEntry 
 
-# --- IMPORTS DE RUTAS ---
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(ruta_raiz)
 
@@ -20,19 +19,16 @@ try:
     from controller.reportes import GeneradorPDF
 except ImportError:
     pass
-
 try:
     from view.header import header 
 except ImportError:
     from tkinter import Frame as header 
 
-# --- CONSTANTES DE ESTILO ---
 COLOR_FONDO = "#B71C1C"
 COLOR_BOTON = "#5DADE2"
 COLOR_TEXTO_LBL = "#5DADE2"
 COLOR_BLANCO = "#FFFFFF"
 
-# Fuentes
 FONT_LABEL = ("Arial", 12, "bold")
 FONT_INPUT = ("Arial", 12)
 FONT_BTN = ("Arial", 12, "bold")
@@ -50,12 +46,9 @@ class EstiloBase(Frame):
         except Exception:
             Label(self, text=titulo, bg=COLOR_FONDO, fg="white", font=("Arial", 24)).pack(pady=10)
 
-# ==========================================================
-# PANTALLA 1: MAIN
-# ==========================================================
 class ProductosMain(EstiloBase):
     def __init__(self, master, controlador):
-        super().__init__(master, controlador, "GESTIÓN DE INGREDIENTES")
+        super().__init__(master, controlador, "INGREDIENTS MANAGEMENT")
         
         self.ultimo_directorio = os.getcwd() 
 
@@ -65,7 +58,7 @@ class ProductosMain(EstiloBase):
         scroll = Scrollbar(frame_tabla)
         scroll.pack(side="right", fill="y")
 
-        cols = ("ID", "Nombre", "Desc.", "Cant.", "Unidad", "Precio", "Caducidad", "Prov.")
+        cols = ("ID", "Name", "Desc.", "Qty.", "Unit", "Price", "Expiration", "Prov.")
         self.tree = ttk.Treeview(frame_tabla, columns=cols, show="headings", yscrollcommand=scroll.set)
         
         style = ttk.Style()
@@ -85,11 +78,11 @@ class ProductosMain(EstiloBase):
 
         btn_opts = {"bg": COLOR_BOTON, "fg": "white", "font": FONT_BTN, "width": 15, "bd": 0, "cursor": "hand2"}
 
-        Button(frame_botones, text="Añadir Ingrediente", command=lambda: controlador.mostrar_pantalla("productos_insertar"), **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="Actualizar", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="Eliminar", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=10)
-        Button(frame_botones, text="📄 REPORTES", bg="#FF9800", fg="white", font=FONT_BTN, width=15, bd=0, cursor="hand2", command=self.abrir_menu_reportes).pack(side="right", padx=10)
-        Button(frame_botones, text="Refrescar", command=self.cargar_datos, **btn_opts).pack(side="right", padx=10)
+        Button(frame_botones, text="Add Ingredient", command=lambda: controlador.mostrar_pantalla("productos_insertar"), **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="Update", command=self.ir_a_actualizar, **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="Delete", command=self.ir_a_eliminar, **btn_opts).pack(side="left", padx=10)
+        Button(frame_botones, text="📄 REPORTS", bg="#FF9800", fg="white", font=FONT_BTN, width=15, bd=0, cursor="hand2", command=self.abrir_menu_reportes).pack(side="right", padx=10)
+        Button(frame_botones, text="Refresh", command=self.cargar_datos, **btn_opts).pack(side="right", padx=10)
 
         self.cargar_datos()
         self.bind("<Map>", self.evento_actualizar_tabla)
@@ -100,7 +93,7 @@ class ProductosMain(EstiloBase):
     def cargar_datos(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-        datos = Productos.buscar()
+        datos = Productos.buscar("All")
         for fila in datos:
             self.tree.insert("", "end", values=fila)
 
@@ -112,7 +105,7 @@ class ProductosMain(EstiloBase):
             pantalla_act.cargar_datos_formulario(valores)
             self.controlador.mostrar_pantalla("productos_actualizar")
         else:
-            messagebox.showwarning("Atención", "Seleccione un ingrediente para actualizar")
+            messagebox.showwarning("Notice", "Select an ingredient to update")
 
     def ir_a_eliminar(self):
         seleccion = self.tree.focus()
@@ -122,19 +115,19 @@ class ProductosMain(EstiloBase):
             pantalla_eli.cargar_datos_vista(valores)
             self.controlador.mostrar_pantalla("productos_eliminar")
         else:
-            messagebox.showwarning("Atención", "Seleccione un ingrediente para eliminar")
+            messagebox.showwarning("Notice", "Select an ingredient to delete")
 
     def abrir_menu_reportes(self):
         ventana = Toplevel(self)
-        ventana.title("Generar Reportes")
+        ventana.title("Generate Reports")
         ventana.geometry("400x350")
         ventana.config(bg="white")
-        Label(ventana, text="Selecciona el Tipo de Reporte", font=("Arial", 16, "bold"), bg="white", fg="#B71C1C").pack(pady=20)
+        Label(ventana, text="Select Report Type", font=("Arial", 16, "bold"), bg="white", fg="#B71C1C").pack(pady=20)
         estilo_btn_rep = {"font": ("Arial", 12), "width": 30, "pady": 5, "bg": "#5DADE2", "fg": "white", "bd": 0, "cursor": "hand2"}
-        Button(ventana, text="📊 Ingredientes Completos", command=lambda: self.generar_pdf_reporte("Completo"), **estilo_btn_rep).pack(pady=10)
-        Button(ventana, text="⚠️ Stock Bajo (Menos de 10 u.)", command=lambda: self.generar_pdf_reporte("Bajo"), **estilo_btn_rep).pack(pady=10)
-        Button(ventana, text="📅 Próximos a Caducar", command=lambda: self.generar_pdf_reporte("Caducar"), **estilo_btn_rep).pack(pady=10)
-        Button(ventana, text="Cerrar", command=ventana.destroy, bg="#B71C1C", fg="white", width=15).pack(pady=20)
+        Button(ventana, text="📊 Full Ingredient List", command=lambda: self.generar_pdf_reporte("Completo"), **estilo_btn_rep).pack(pady=10)
+        Button(ventana, text="⚠️ Low Stock (< 10 units)", command=lambda: self.generar_pdf_reporte("Bajo"), **estilo_btn_rep).pack(pady=10)
+        Button(ventana, text="📅 Expiring Soon", command=lambda: self.generar_pdf_reporte("Caducar"), **estilo_btn_rep).pack(pady=10)
+        Button(ventana, text="Close", command=ventana.destroy, bg="#B71C1C", fg="white", width=15).pack(pady=20)
 
     def obtener_nombre_unico(self, directorio, nombre_archivo):
         ruta_completa = os.path.join(directorio, nombre_archivo)
@@ -171,7 +164,7 @@ class ProductosMain(EstiloBase):
             titulo = "EXPIRING INGREDIENTS (NEXT 7 DAYS)"  # Inglés
 
         if not datos:
-            messagebox.showinfo("Aviso", "No hay datos para generar este reporte.")
+            messagebox.showinfo("Notice", "No data available for this report.")
             return
 
         nombre_sugerido = self.obtener_nombre_unico(self.ultimo_directorio, nombre_default)
@@ -202,12 +195,9 @@ class ProductosMain(EstiloBase):
         except Exception as e:
             messagebox.showerror("Error", f"Error generating PDF: {e}")
 
-# ==========================================================
-# PANTALLA 2: INSERTAR
-# ==========================================================
 class ProductosInsertar(EstiloBase):
     def __init__(self, master, controlador, modo="insertar"):
-        titulo = "AÑADIR INGREDIENTE" if modo == "insertar" else "ACTUALIZAR INGREDIENTE"
+        titulo = "ADD INGREDIENT" if modo == "insertar" else "UPDATE INGREDIENT"
         super().__init__(master, controlador, titulo)
         self.modo = modo
         self.id_producto_actual = None 
@@ -224,10 +214,10 @@ class ProductosInsertar(EstiloBase):
         }
 
         campos = [
-            ("Nombre del Ingrediente", "nombre"), ("Cantidad", "cantidad"),
-            ("Unidad", "unidad"), ("Precio", "precio"),
-            ("Descripcion", "desc"), ("Fecha Caducidad", "caducidad"),
-            ("ID Proveedor (Selecciona de la tabla ➜)", "prov")
+            ("Ingredient Name", "nombre"), ("Quantity", "cantidad"),
+            ("Unit", "unidad"), ("Price", "precio"),
+            ("Description", "desc"), ("Expiration Date", "caducidad"),
+            ("Supplier ID (Select from table ➜)", "prov")
         ]
 
         for idx, (lbl_text, var_key) in enumerate(campos):
@@ -239,7 +229,8 @@ class ProductosInsertar(EstiloBase):
                                 background='darkblue', foreground='white', borderwidth=2,
                                 date_pattern='yyyy-mm-dd') 
             elif var_key == "unidad":
-                ent = ttk.Combobox(form_frame, textvariable=self.vars[var_key], values=["kg", "litros", "piezas", "caja", "gramos"], width=38, font=FONT_INPUT)
+                # Valores en Inglés
+                ent = ttk.Combobox(form_frame, textvariable=self.vars[var_key], values=["kg", "liters", "pieces", "box", "grams"], width=38, font=FONT_INPUT)
             else:
                 ent = Entry(form_frame, textvariable=self.vars[var_key], width=40, font=FONT_INPUT)
             
@@ -248,15 +239,15 @@ class ProductosInsertar(EstiloBase):
         ayuda_frame = Frame(cuerpo, bg="white", bd=2, relief="ridge")
         ayuda_frame.place(relx=0.58, rely=0.02, relwidth=0.40, relheight=0.75)
 
-        Label(ayuda_frame, text="LISTA DE PROVEEDORES", bg="#E0E0E0", font=("Arial", 12, "bold")).pack(fill="x")
-        Label(ayuda_frame, text="(Haz doble clic para seleccionar)", bg="white", font=("Arial", 9), fg="gray").pack(fill="x")
+        Label(ayuda_frame, text="SUPPLIERS LIST", bg="#E0E0E0", font=("Arial", 12, "bold")).pack(fill="x")
+        Label(ayuda_frame, text="(Double click to select)", bg="white", font=("Arial", 9), fg="gray").pack(fill="x")
 
-        cols_prov = ("ID", "Empresa")
+        cols_prov = ("ID", "Company")
         self.tree_prov = ttk.Treeview(ayuda_frame, columns=cols_prov, show="headings", height=10)
         self.tree_prov.heading("ID", text="ID")
         self.tree_prov.column("ID", width=50, anchor="center")
-        self.tree_prov.heading("Empresa", text="Nombre Empresa")
-        self.tree_prov.column("Empresa", width=200, anchor="w")
+        self.tree_prov.heading("Company", text="Company Name")
+        self.tree_prov.column("Company", width=200, anchor="w")
         
         scroll_prov = Scrollbar(ayuda_frame, command=self.tree_prov.yview)
         self.tree_prov.configure(yscrollcommand=scroll_prov.set)
@@ -269,10 +260,10 @@ class ProductosInsertar(EstiloBase):
         btn_frame = Frame(self, bg=COLOR_FONDO)
         btn_frame.pack(side="bottom", pady=20)
         
-        txt_confirmar = "GUARDAR" if modo == "insertar" else "ACTUALIZAR"
+        txt_confirmar = "SAVE" if modo == "insertar" else "UPDATE"
         Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
-        Button(btn_frame, text="LIMPIAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
-        Button(btn_frame, text="VOLVER", command=lambda: controlador.mostrar_pantalla("productos_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="CLEAR", command=self.limpiar, bg="gray", fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
+        Button(btn_frame, text="BACK", command=lambda: controlador.mostrar_pantalla("productos_main"), bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)
 
         self.bind("<Map>", self.evento_actualizar_proveedores)
 
@@ -308,18 +299,15 @@ class ProductosInsertar(EstiloBase):
         
         if self.modo == "insertar":
             if Productos.insertar(*datos):
-                messagebox.showinfo("Éxito", "Ingrediente añadido correctamente")
+                messagebox.showinfo("Success", "Ingredient added successfully")
                 self.limpiar()
                 self.controlador.pantallas["productos_main"].cargar_datos()
         else:
             if Productos.actualizar(self.id_producto_actual, *datos):
-                messagebox.showinfo("Éxito", "Ingrediente actualizado")
+                messagebox.showinfo("Success", "Ingredient updated")
                 self.controlador.mostrar_pantalla("productos_main")
                 self.controlador.pantallas["productos_main"].cargar_datos()
 
-# ==========================================================
-# PANTALLA 3: ACTUALIZAR
-# ==========================================================
 class ProductosActualizar(ProductosInsertar):
     def __init__(self, master, controlador):
         super().__init__(master, controlador, modo="actualizar")
@@ -335,31 +323,28 @@ class ProductosActualizar(ProductosInsertar):
         self.vars["prov"].set(valores[7])
         self.cargar_lista_proveedores()
 
-# ==========================================================
-# PANTALLA 4: ELIMINAR
-# ==========================================================
 class ProductosEliminar(EstiloBase):
     def __init__(self, master, controlador):
-        super().__init__(master, controlador, "ELIMINAR INGREDIENTE")
+        super().__init__(master, controlador, "DELETE INGREDIENT")
         self.id_a_eliminar = None
         cuerpo = Frame(self, bg=COLOR_FONDO)
         cuerpo.pack(expand=True, fill="both", padx=50, pady=50)
-        Label(cuerpo, text="¿Estás seguro que deseas eliminar este ingrediente?", bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
+        Label(cuerpo, text="Are you sure you want to delete this ingredient?", bg=COLOR_FONDO, fg="white", font=("Arial", 18)).pack(pady=20)
         self.lbl_info = Label(cuerpo, text="", bg="#900C0C", fg="white", font=("Arial", 16), padx=20, pady=20)
         self.lbl_info.pack(pady=10, fill="x")
         btn_frame = Frame(cuerpo, bg=COLOR_FONDO)
         btn_frame.pack(pady=40)
-        Button(btn_frame, text="CONFIRMAR ELIMINACIÓN", bg="red", fg="white", font=FONT_BTN, command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
-        Button(btn_frame, text="Cancelar / Volver", bg=COLOR_BOTON, fg="white", font=FONT_BTN, command=lambda: controlador.mostrar_pantalla("productos_main"), cursor="hand2").pack(side="left", padx=20)
+        Button(btn_frame, text="CONFIRM DELETION", bg="red", fg="white", font=FONT_BTN, command=self.confirmar_eliminar, cursor="hand2").pack(side="left", padx=20)
+        Button(btn_frame, text="Cancel / Back", bg=COLOR_BOTON, fg="white", font=FONT_BTN, command=lambda: controlador.mostrar_pantalla("productos_main"), cursor="hand2").pack(side="left", padx=20)
 
     def cargar_datos_vista(self, valores):
         self.id_a_eliminar = valores[0]
-        texto = f"ID: {valores[0]}\nIngrediente: {valores[1]}\nDescripción: {valores[2]}\nStock: {valores[3]} {valores[4]}"
+        texto = f"ID: {valores[0]}\nIngredient: {valores[1]}\nDescription: {valores[2]}\nStock: {valores[3]} {valores[4]}"
         self.lbl_info.config(text=texto)
 
     def confirmar_eliminar(self):
         if self.id_a_eliminar:
             if Productos.eliminar(self.id_a_eliminar):
-                messagebox.showinfo("Eliminado", "Ingrediente eliminado del sistema.")
+                messagebox.showinfo("Deleted", "Ingredient deleted from system.")
                 self.controlador.pantallas["productos_main"].cargar_datos()
                 self.controlador.mostrar_pantalla("productos_main")
