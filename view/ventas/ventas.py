@@ -106,7 +106,7 @@ class mainVentas(Frame):
 
         self.combo_campo = ttk.Combobox(self.frame_filtrar, values=columnas, state="readonly", style="Custom.TCombobox")
         self.combo_campo.configure(font=("Arial", 22),width=10)
-        self.combo_campo.current(0)
+        self.combo_campo.current(2)
         self.combo_campo.grid(row=0, column=1, sticky="nsew", padx=5)
         
         def campo_seleccionado(event):
@@ -123,9 +123,10 @@ class mainVentas(Frame):
 
         filtros_fecha = ["Newest","Oldest"]
         filtros_precio = ["Highest","Lowest"]
-        self.combo_valor = ttk.Combobox(self.frame_filtrar, values=[], style="Custom.TCombobox")
+        self.combo_valor = ttk.Combobox(self.frame_filtrar, values=filtros_fecha, style="Custom.TCombobox")
         self.combo_valor.configure(font=("Arial", 22),width=10)
         self.combo_valor.grid(row=0, column=2, sticky="nsew", padx=5)
+        self.combo_valor.set("Newest")
         
         self.btn_buscar = Button(self.frame_filtrar, text="Search", font=("Arial", 13, "bold"),
                             command=lambda: self.buscar_venta(self.combo_campo.get(),self.combo_valor.get()))
@@ -237,6 +238,7 @@ class mainVentas(Frame):
         self.lbl_imagen_grafico_ingresos = Label(frameREPORTES, bg=COLOR_FRAME)
         self.lbl_imagen_grafico_ingresos.pack(padx=(40, 0), pady=10, anchor="w")
         
+        self.buscar_venta(self.combo_campo.get(),self.combo_valor.get())
         self.actualizar_grafico_vp("Weekly") 
         self.actualizar_grafico_ingresos("Weekly")
 
@@ -351,7 +353,7 @@ class mainVentas(Frame):
         self.tabla.cargar(registros)
 
     def eliminar_venta(self):
-        if self.id_seleccionado == 0:
+        if self.id_seleccionado == None:
             messagebox.showinfo("Notice", "Select a record to continue.")
             return
         confirmar = messagebox.askyesno(
@@ -369,10 +371,10 @@ class mainVentas(Frame):
         ok_venta = ventasCRUD.ventas.eliminar(self.id_seleccionado)
         if ok_venta:
             messagebox.showinfo("Success", f"Sale ID = {self.id_seleccionado} and details deleted successfully.")
-            self.buscar_venta("All","")
+            self.buscar_venta("Date","Newest")
             for row in self.tabla2.get_children():
                 self.tabla2.delete(row)
-            self.id_seleccionado = 0
+            self.id_seleccionado = None
             self.actualizar_grafico_vp("Weekly") 
             self.actualizar_grafico_ingresos("Weekly")
         else:
