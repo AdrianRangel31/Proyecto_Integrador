@@ -15,6 +15,8 @@ class ventas:
                 cursor.execute("select * from ventas")
             elif campo=="Time":
                 cursor.execute(f"select * from ventas where hora_venta like '%{valor}%'")
+            elif campo=="Total" and valor != "Lowest" and valor != "Highest":
+                cursor.execute(f"select * from ventas where total_venta BETWEEN ({valor} * 0.75) AND ({valor} * 1.25)")
             else:
                 match valor:
                     case "Newest":

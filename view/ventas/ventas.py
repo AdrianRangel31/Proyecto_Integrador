@@ -529,10 +529,13 @@ class insertarVentas(Frame):
         f = len(self.opciones_prod)+1 
         self.fecha = DateEntry(
                  frame_prod,
-                 date_pattern="yyyy-mm-dd", # Patrón ISO
+                 date_pattern="yyyy-mm-dd", 
                  locale="en_US",
-                 font=("Arial", 20),
-                 width=12
+                 font=("Arial", 14),
+                 width=12,
+                 background='darkblue',
+                 foreground='white', 
+                 borderwidth=2                
                 )
         self.fecha.grid(row=f+1,column=1,pady=5)
         lbl_fecha = Label(frame_prod,text="Date: ",font=("Arial", 20),bg=COLOR_FRAME,fg="white")
@@ -564,7 +567,7 @@ class insertarVentas(Frame):
         self.spin_minuto.grid(row=0,column=2)
 
         btn_menu = Button(frame_prod,text="Modify Menu Prices",font=("Arial",16),command=lambda:self.controlador.mostrar_pantalla("menu_crud"),bg="#669BBC",fg="white")
-        btn_menu.grid(row=f+3,column=0,columnspan=2,sticky="nsew",padx=80)
+        btn_menu.grid(row=f+3,column=0,columnspan=2,sticky="nsew",padx=80,pady=(0,120))
 
         match accion:
             case "agregar":
