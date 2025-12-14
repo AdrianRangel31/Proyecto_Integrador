@@ -67,4 +67,4 @@ dist/
 .idea/
 
 images/
-.png
+*.png
