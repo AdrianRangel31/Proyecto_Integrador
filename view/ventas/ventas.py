@@ -371,7 +371,7 @@ class mainVentas(Frame):
         ok_venta = ventasCRUD.ventas.eliminar(self.id_seleccionado)
         if ok_venta:
             messagebox.showinfo("Success", f"Sale ID = {self.id_seleccionado} and details deleted successfully.")
-            self.buscar_venta("Date","Newest")
+            self.buscar_venta(self.combo_campo.get(),self.combo_valor.get())
             for row in self.tabla2.get_children():
                 self.tabla2.delete(row)
             self.id_seleccionado = None
