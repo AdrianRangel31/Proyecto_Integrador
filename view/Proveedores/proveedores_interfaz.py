@@ -145,7 +145,7 @@ class ProveedoresInsertar(EstiloBase):
             Entry(form_frame, textvariable=self.vars[var_key], width=45, font=FONT_INPUT).pack(pady=0, ipady=12, anchor="w", padx=5)
 
         btn_frame = Frame(self, bg=COLOR_FONDO)
-        btn_frame.pack(side="bottom", pady=30)
+        btn_frame.pack(side="bottom", pady=(5,10))
         
         btn_opts = {"font": FONT_BTN, "width": 18, "bd": 0, "cursor": "hand2"}
 

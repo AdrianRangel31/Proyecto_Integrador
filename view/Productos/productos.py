@@ -203,7 +203,7 @@ class ProductosInsertar(EstiloBase):
         self.id_producto_actual = None 
 
         cuerpo = Frame(self, bg=COLOR_FONDO)
-        cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
+        cuerpo.pack(expand=True, fill="both", padx=30, pady=10)
 
         form_frame = Frame(cuerpo, bg=COLOR_FONDO)
         form_frame.place(relx=0.0, rely=0.0, relwidth=0.55, relheight=1.0)
@@ -258,7 +258,7 @@ class ProductosInsertar(EstiloBase):
         self.cargar_lista_proveedores()
 
         btn_frame = Frame(self, bg=COLOR_FONDO)
-        btn_frame.pack(side="bottom", pady=20)
+        btn_frame.pack(side="bottom", pady=2)
         
         txt_confirmar = "SAVE" if modo == "insertar" else "UPDATE"
         Button(btn_frame, text=txt_confirmar, command=self.guardar, bg=COLOR_BOTON, fg="white", font=FONT_BTN, width=15).pack(side="left", padx=15)

@@ -142,7 +142,7 @@ class UsuariosInsertar(EstiloBase):
         self.id_usuario_actual = None
 
         cuerpo = Frame(self, bg=COLOR_FONDO)
-        cuerpo.pack(expand=True, fill="both", padx=30, pady=20)
+        cuerpo.pack(expand=True, fill="both", padx=30, pady=10)
 
         form_frame = Frame(cuerpo, bg=COLOR_FONDO)
         form_frame.place(relx=0.25, rely=0.05, relwidth=0.5, relheight=0.9)
